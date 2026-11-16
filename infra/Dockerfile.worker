@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+FROM node:24-bookworm-slim AS build
+WORKDIR /workspace
+RUN npm install --global pnpm@12.21.0
+COPY . .
+RUN --mount=type=cache,id=avero-pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir /pnpm/store
+ENV NX_DAEMON=false
+RUN pnpm exec nx build @avero/worker
+RUN --mount=type=cache,id=avero-pnpm,target=/pnpm/store pnpm --filter @avero/worker deploy --legacy --prod --store-dir /pnpm/store /deploy
+
+FROM node:24-bookworm-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production AVERO_WORKER_PORT=3101
+COPY --from=build --chown=node:node /deploy ./
+USER node
+HEALTHCHECK --interval=15s --timeout=5s --start-period=15s CMD ["node", "-e", "fetch('http://127.0.0.1:'+process.env.AVERO_WORKER_PORT+'/healthz').then(r=>{if(!r.ok)process.exitCode=1}).catch(()=>{process.exitCode=1})"]
+CMD ["node", "dist/main.js"]

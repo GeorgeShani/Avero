@@ -20,7 +20,7 @@ pnpm exec nx run @avero/coding-engine:cursor:auth
 pnpm exec nx run @avero/coding-engine:cursor:smoke
 ```
 
-The smoke command creates a temporary fixture and allows the agent only the built-in read tool. It prints event envelopes and a request ID. It passes only when the SDK completes a tool call and returns the exact value from the fixture. The fixture and SDK run store are deleted when the command exits. Use `AVERO_CURSOR_MODEL` to override the default `composer-2.5` model.
+The smoke command creates a temporary Git repository and allows the agent only the built-in read tool. It prints event envelopes and provider identifiers. It passes only when the SDK completes a tool call and returns the exact value from the fixture. The repository and SDK run store are deleted when the command exits. Use `AVERO_CURSOR_MODEL` to override the default `composer-2.5` model.
 
 ## Cursor Agent SDK
 
@@ -42,6 +42,8 @@ pnpm exec nx run @avero/agent-service:agent:eval
 ```
 
 The evaluation requires a successful model turn and tool call, with the expected verdict in the reply. Model turns and evals can consume Cursor usage. Both integrations type-checked against their installed SDKs. The Agent SDK CLI validated the project and discovered the smoke eval. The registered tool definition accepted valid input and returned the expected verdict when invoked directly. The authenticated prototypes and evaluation still need a connected run.
+
+From the workspace root, run `pnpm verify:sdk` for the local checks. After configuring Cursor credentials, run `pnpm verify:sdk --live` to verify both authenticated tasks and the eval.
 
 - [Cursor TypeScript SDK](https://cursor.com/docs/sdk/typescript)
 - [Cursor Agent SDK](https://cursor.com/docs/agent-sdk)

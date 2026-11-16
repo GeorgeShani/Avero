@@ -1,5 +1,6 @@
 import { serviceHealth } from '@avero/contracts';
-import { StatusBadge } from '@avero/ui';
+import { buttonVariants, StatusBadge } from '@avero/ui';
+import Link from 'next/link';
 
 export default function Home() {
   const health = serviceHealth('web');
@@ -9,6 +10,9 @@ export default function Home() {
       <header className="border-b border-white/10 pb-8">
         <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">Avero</h1>
         <p className="mt-3 text-lg text-zinc-400">Engineering workspace</p>
+        <Link href="/workspaces" className={buttonVariants({ className: 'mt-6' })}>
+          Open workspaces
+        </Link>
       </header>
       <section aria-labelledby="status-heading" className="mt-10">
         <h2 id="status-heading" className="text-lg font-semibold">

@@ -2,6 +2,18 @@ packages:
   - 'apps/*'
   - 'packages/*'
 
+overrides:
+  # The Agent SDK's installed OpenTelemetry SDKs require an API version below 1.10.
+  '@opentelemetry/api': '1.9.1'
+  # The older OTLP exporters use this package only for types. Reuse the Agent SDK's version.
+  '@opentelemetry/sdk-trace-base@2.2.0': '2.12.1'
+  # Drizzle Kit loads TypeScript through tsx. Its previous loader is still declared.
+  'drizzle-kit@0.31.11>@esbuild-kit/esm-loader': '-'
+  # This release preserves the CommonJS sniffing API used by http-server.
+  'http-server@14.1.1>html-encoding-sniffer': '6.0.0'
+  # test-exclude 8 makes the same glob upgrade. Avero already requires Node 24 or newer.
+  'test-exclude@7.0.2>glob': '13.0.7'
+
 allowBuilds:
   '@grok/agent-sdk': true
   '@parcel/watcher': true
@@ -14,7 +26,21 @@ allowBuilds:
 
 permissions:
   '@grok/agent-sdk':
-    skills: [cli, create-agent, debug, deploy, evals, framework-map, github, hillclimb, mcp-auth, migrate-v2, otel, setup-slack]
+    skills:
+      [
+        cli,
+        create-agent,
+        debug,
+        deploy,
+        evals,
+        framework-map,
+        github,
+        hillclimb,
+        mcp-auth,
+        migrate-v2,
+        otel,
+        setup-slack,
+      ]
 
 skills:
   dirs:

@@ -1,3 +1,4 @@
+import { URL } from 'node:url';
 import { z } from 'zod';
 
 const workerEnvironment = z.object({
@@ -16,4 +17,20 @@ export function readWorkerPort(environment: Record<string, string | undefined>):
   }
 
   return result.data.AVERO_WORKER_PORT;
+}
+
+const clerkEnvironment = z.object({
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().regex(/^pk_(test|live)_\S+$/),
+  CLERK_SECRET_KEY: z.string().regex(/^sk_(test|live)_\S+$/),
+  AVERO_APP_URL: z.url({ protocol: /^https?$/ }).default('http://localhost:3000'),
+});
+
+export function readClerkEnvironment(environment: Record<string, string | undefined>) {
+  const parsed = clerkEnvironment.safeParse(environment);
+  if (!parsed.success) return undefined;
+  return {
+    publishableKey: parsed.data.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    secretKey: parsed.data.CLERK_SECRET_KEY,
+    authorizedParties: [new URL(parsed.data.AVERO_APP_URL).origin],
+  };
 }

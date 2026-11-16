@@ -41,6 +41,7 @@
       "inputs": [
         "production",
         "^production",
+        { "env": "AVERO_WEB_STANDALONE" },
         {
           "runtime": "node --version"
         }

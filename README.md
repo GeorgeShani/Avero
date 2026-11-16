@@ -9,6 +9,8 @@ Use Node.js 24 or 26 and pnpm 12.21.0. Install dependencies from the workspace r
 ```shell
 pnpm install
 pnpm check
+pnpm verify:workspace
+pnpm verify:sdk
 pnpm exec nx show projects
 pnpm exec nx graph
 ```
@@ -36,5 +38,16 @@ pnpm exec nx start @avero/web
 pnpm exec nx build @avero/worker
 pnpm exec nx start @avero/worker
 ```
+
+## Set up workspaces
+
+1. Add your Clerk development keys and `DATABASE_URL` to the root `.env`. See `.env.example` for a local database URL. Set `AVERO_APP_URL` to the browser origin if you use an address other than `http://localhost:3000`.
+2. Run `pnpm infra:up` and `pnpm infra:verify` to bring up the local PostgreSQL and Redis services.
+3. Run `pnpm exec nx run @avero/db:db:migrate`.
+4. Start the web app and open `/workspaces` to sign in and create your first workspace.
+
+Workspace membership controls visibility. Owners and admins can rename a workspace. The authenticated API exposes the same operations under `/api/v1/workspaces`.
+
+See [local infrastructure and images](infra/README.md) for the Compose settings and Docker build commands.
 
 [Workspace architecture](docs/nx-workspace.md) · [Cursor SDK setup and verification](docs/sdk-compatibility.md)

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { changeAssessmentInputSchema, serviceHealth, serviceHealthSchema } from './index.ts';
+import {
+  changeAssessmentInputSchema,
+  serviceHealth,
+  serviceHealthSchema,
+  workspaceInputSchema,
+} from './index.ts';
 
 describe('service health', () => {
   it.each(['web', 'worker'] as const)('accepts the %s process response', (service) => {
@@ -21,5 +26,14 @@ describe('change assessment input', () => {
       changeAssessmentInputSchema.safeParse({ paths: Array(101).fill('package.json') }).success,
     ).toBe(false);
     expect(changeAssessmentInputSchema.safeParse({ paths: ['README.md'] }).success).toBe(true);
+  });
+});
+
+describe('workspace input', () => {
+  it('trims names and rejects blank names and client-supplied roles', () => {
+    expect(workspaceInputSchema.parse({ name: ' Avero ' })).toEqual({ name: 'Avero' });
+    expect(workspaceInputSchema.safeParse({ name: ' ' }).success).toBe(false);
+    expect(workspaceInputSchema.safeParse({ name: 'A'.repeat(81) }).success).toBe(false);
+    expect(workspaceInputSchema.safeParse({ name: 'Avero', role: 'owner' }).success).toBe(false);
   });
 });
