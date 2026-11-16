@@ -1,0 +1,54 @@
+{
+  "name": "@avero/coding-engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "cursor:login": "node dist/cli.js login",
+    "cursor:auth": "node dist/cli.js auth",
+    "cursor:smoke": "node dist/cli.js smoke"
+  },
+  "dependencies": {
+    "@cursor/sdk": "1.4.0"
+  },
+  "nx": {
+    "tags": [
+      "scope:shared",
+      "type:integration",
+      "runtime:node"
+    ],
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      },
+      "cursor:login": {
+        "dependsOn": [
+          "build"
+        ],
+        "cache": false
+      },
+      "cursor:auth": {
+        "dependsOn": [
+          "build"
+        ],
+        "cache": false
+      },
+      "cursor:smoke": {
+        "dependsOn": [
+          "build"
+        ],
+        "cache": false
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "name": "@avero/agent-service",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "dev": "agent-sdk dev --dir .",
+    "start": "agent-sdk serve --dir . --host 127.0.0.1 --port 3102",
+    "agent:validate": "agent-sdk validate --dir .",
+    "agent:login": "agent-sdk login",
+    "agent:auth": "agent-sdk whoami",
+    "agent:smoke": "agent-sdk run --dir . --timeout-ms 90000 --no-trace --message \"Call assess_change for package.json and README.md, then quote its verdict exactly.\"",
+    "agent:eval": "agent-sdk eval --dir . --tag smoke --no-stream --no-artifacts"
+  },
+  "dependencies": {
+    "@avero/contracts": "workspace:*",
+    "@grok/agent-sdk": "0.6.0",
+    "zod": "4.6.7"
+  },
+  "nx": {
+    "tags": [
+      "scope:agent",
+      "type:app",
+      "runtime:node"
+    ],
+    "targets": {
+      "agent:validate": {
+        "dependsOn": [
+          "^build"
+        ],
+        "cache": false
+      },
+      "agent:login": {
+        "dependsOn": [
+          "^build"
+        ],
+        "cache": false
+      },
+      "agent:auth": {
+        "dependsOn": [
+          "^build"
+        ],
+        "cache": false
+      },
+      "agent:smoke": {
+        "dependsOn": [
+          "^build"
+        ],
+        "cache": false
+      },
+      "agent:eval": {
+        "dependsOn": [
+          "^build"
+        ],
+        "cache": false
+      }
+    }
+  }
+}

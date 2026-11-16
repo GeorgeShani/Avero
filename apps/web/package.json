@@ -1,0 +1,29 @@
+{
+  "name": "@avero/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@avero/contracts": "workspace:*",
+    "@avero/ui": "workspace:*",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.2.0",
+    "tailwindcss": "4.3.3"
+  },
+  "nx": {
+    "tags": [
+      "scope:web",
+      "type:app",
+      "runtime:browser"
+    ]
+  }
+}

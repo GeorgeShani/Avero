@@ -1,0 +1,9 @@
+pnpm-lock.yaml
+node_modules/
+dist/
+.next/
+.nx/
+coverage/
+next-env.d.ts
+.agent-sdk/
+reports/

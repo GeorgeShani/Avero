@@ -1,0 +1,31 @@
+{
+  "name": "@avero/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "dev": "node --watch src/main.ts",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@avero/config": "workspace:*",
+    "@avero/contracts": "workspace:*",
+    "@avero/observability": "workspace:*"
+  },
+  "nx": {
+    "tags": [
+      "scope:worker",
+      "type:app",
+      "runtime:node"
+    ],
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      }
+    }
+  }
+}

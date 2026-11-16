@@ -1,0 +1,26 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+allowBuilds:
+  '@grok/agent-sdk': true
+  '@parcel/watcher': true
+  '@tailwindcss/oxide': true
+  esbuild: true
+  nx: true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true
+
+permissions:
+  '@grok/agent-sdk':
+    skills: [cli, create-agent, debug, deploy, evals, framework-map, github, hillclimb, mcp-auth, migrate-v2, otel, setup-slack]
+
+skills:
+  dirs:
+    - .agent/skills
+    - .agents/skills
+    - .claude/skills
+    - .cursor/skills
+    - .gemini/skills
+    - .github/skills

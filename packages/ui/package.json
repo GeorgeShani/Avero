@@ -1,0 +1,36 @@
+{
+  "name": "@avero/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0"
+  },
+  "nx": {
+    "tags": [
+      "scope:shared",
+      "type:ui",
+      "runtime:browser"
+    ],
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      }
+    }
+  },
+  "peerDependencies": {
+    "react": "^19.3.0"
+  }
+}

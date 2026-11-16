@@ -1,0 +1,14 @@
+# pnpm
+/cli
+/create-agent
+/debug
+/deploy
+/evals
+/framework-map
+/github
+/hillclimb
+/mcp-auth
+/migrate-v2
+/otel
+/setup-slack
+# pnpm end
