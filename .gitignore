@@ -12,3 +12,5 @@ reports/
 *.log
 .impeccable/live/
 .impeccable/questions/
+.claude/launch.json
+.impeccable/design.json

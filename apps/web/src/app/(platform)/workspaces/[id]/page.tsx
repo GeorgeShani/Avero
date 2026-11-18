@@ -1,9 +1,11 @@
 import { workspaceIdSchema } from '@avero/contracts';
-import { Button } from '@avero/ui';
-import Link from 'next/link';
+import { Alert, Breadcrumb, Button, Card, TextField } from '@avero/ui';
+import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { canEditWorkspace, queryWorkspace, workspaceSession } from '../../../../server/workspaces';
 import { renameWorkspaceAction } from '../actions';
+
+export const metadata: Metadata = { title: 'Workspace' };
 
 export default async function WorkspacePage({
   params,
@@ -25,36 +27,40 @@ export default async function WorkspacePage({
   if (!workspace) notFound();
 
   return (
-    <section aria-labelledby="workspace-heading">
-      <Link href="/workspaces" className="text-sm text-muted-foreground underline">
-        All workspaces
-      </Link>
-      <h1 id="workspace-heading" className="mt-4 text-3xl font-semibold">
-        {workspace.name}
-      </h1>
-      <p className="mt-2 capitalize text-muted-foreground">{workspace.role}</p>
+    <>
+      <div data-page-head>
+        <div>
+          <Breadcrumb items={['Workspaces', workspace.name]} />
+          <h1>{workspace.name}</h1>
+        </div>
+        <span data-kit="badge" data-tone="neutral">
+          {workspace.role}
+        </span>
+      </div>
       {canEditWorkspace(workspace.role) && (
-        <form action={renameWorkspaceAction} className="mt-8 grid max-w-md gap-3">
-          <input type="hidden" name="id" value={workspace.id} />
-          <label htmlFor="workspace-name" className="text-sm font-medium">
-            Workspace name
-          </label>
-          <input
-            id="workspace-name"
-            name="name"
-            defaultValue={workspace.name}
-            required
-            maxLength={80}
-            className="h-9 rounded-md border border-input px-3"
-          />
-          {error === 'name' && (
-            <p role="alert">Enter a workspace name between 1 and 80 characters.</p>
-          )}
-          <Button type="submit" className="justify-self-start">
-            Save name
-          </Button>
-        </form>
+        <Card title="Rename workspace">
+          <form action={renameWorkspaceAction} data-stack aria-label="Rename workspace">
+            <input type="hidden" name="id" value={workspace.id} />
+            {error === 'name' && (
+              <Alert tone="danger" title="Check the name">
+                Enter a workspace name between 1 and 80 characters.
+              </Alert>
+            )}
+            <TextField
+              label="Workspace name"
+              name="name"
+              defaultValue={workspace.name}
+              required
+              maxLength={80}
+            />
+            <div>
+              <Button tone="primary" type="submit">
+                Save name
+              </Button>
+            </div>
+          </form>
+        </Card>
       )}
-    </section>
+    </>
   );
 }

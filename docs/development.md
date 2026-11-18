@@ -36,6 +36,10 @@ Unit tests use Vitest and live next to the code as `*.test.ts`. A project gets a
 
 Playwright end-to-end tests arrive with Milestone 2.
 
+## Vendored UI kit
+
+`packages/ui/src/hardware/` is the SPEC-01 hardware kit, copied from https://spec-01.vercel.app/r/registry.json and owned by this repo. It is excluded from ESLint and Prettier, and `@avero/ui` turns off `noUncheckedIndexedAccess` for it. Edit it deliberately; re-importing overwrites local changes (text fields, stepper, wheel select, resizable and command palette were adapted).
+
 ## Boundaries
 
 Lint enforces the dependency rules in [architecture.md](architecture.md#dependency-rules). If lint reports that a project "can only depend on libs tagged with …", the import crosses a boundary: move the shared code into a library with the right tags rather than loosening a rule.

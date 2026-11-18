@@ -1,3 +1,4 @@
+import { Alert, Lockup, Navbar } from '@avero/ui';
 import { ClerkProvider } from '@clerk/nextjs';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -5,22 +6,43 @@ import { clerkSettings } from '../../server/workspaces';
 
 export const dynamic = 'force-dynamic';
 
+function Frame({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <Navbar
+        leading={
+          <Link
+            href="/"
+            aria-label="Avero home"
+            style={{ display: 'inline-flex', paddingInline: 6 }}
+          >
+            <Lockup />
+          </Link>
+        }
+        label="Account"
+        items={[
+          { href: '/', label: 'Console' },
+          { href: '/workspaces', label: 'Workspaces' },
+        ]}
+      />
+      <main data-kit="sheet" id="main">
+        <div data-page style={{ maxWidth: 640 }}>
+          {children}
+        </div>
+      </main>
+    </>
+  );
+}
+
 export default function PlatformLayout({ children }: { children: ReactNode }) {
   const settings = clerkSettings();
-  const content = (
-    <main className="mx-auto w-full max-w-3xl px-6 py-12 sm:px-10">
-      <Link href="/" className="font-semibold">
-        Avero
-      </Link>
-      <div className="mt-8">{children}</div>
-    </main>
-  );
   if (!settings)
     return (
-      <main className="mx-auto w-full max-w-3xl px-6 py-12">
-        <h1 className="text-2xl font-semibold">Authentication setup required</h1>
-        <p className="mt-2 text-muted-foreground">Configure Clerk to sign in to Avero.</p>
-      </main>
+      <Frame>
+        <Alert tone="warning" title="Authentication setup required">
+          Configure Clerk to sign in to Avero.
+        </Alert>
+      </Frame>
     );
 
   return (
@@ -30,8 +52,18 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
       signUpUrl="/sign-up"
       signInFallbackRedirectUrl="/workspaces"
       signUpFallbackRedirectUrl="/workspaces"
+      appearance={{
+        variables: {
+          colorPrimary: '#1f7358',
+          colorForeground: '#1b1b19',
+          colorBackground: '#efefeb',
+          colorInput: '#ffffff',
+          borderRadius: '8px',
+          fontFamily: 'Red Hat Mono Variable, ui-monospace, monospace',
+        },
+      }}
     >
-      {content}
+      <Frame>{children}</Frame>
     </ClerkProvider>
   );
 }

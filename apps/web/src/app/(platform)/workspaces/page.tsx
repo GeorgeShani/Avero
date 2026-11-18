@@ -1,9 +1,12 @@
-import { Button } from '@avero/ui';
+import { Alert, Button, Card, TextField } from '@avero/ui';
 import { UserButton } from '@clerk/nextjs';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { queryWorkspaces, workspaceSession } from '../../../server/workspaces';
 import { createWorkspaceAction } from './actions';
+
+export const metadata: Metadata = { title: 'Workspaces' };
 
 export default async function WorkspacesPage({
   searchParams,
@@ -14,12 +17,9 @@ export default async function WorkspacesPage({
   if (session.status === 'signed-out') redirect('/sign-in');
   if (session.status === 'unavailable') {
     return (
-      <section>
-        <h1 className="text-2xl font-semibold">Database setup required</h1>
-        <p className="mt-2 text-muted-foreground">
-          Configure PostgreSQL and run the workspace migration.
-        </p>
-      </section>
+      <Alert tone="warning" title="Database setup required">
+        Configure PostgreSQL and run the workspace migration.
+      </Alert>
     );
   }
 
@@ -28,47 +28,44 @@ export default async function WorkspacesPage({
     searchParams,
   ]);
   return (
-    <section aria-labelledby="workspaces-heading">
-      <header className="flex items-center justify-between">
-        <h1 id="workspaces-heading" className="text-3xl font-semibold">
-          Workspaces
-        </h1>
+    <>
+      <div data-page-head>
+        <div>
+          <h1>Workspaces</h1>
+        </div>
         <UserButton />
-      </header>
-      <ul className="mt-6 divide-y divide-border rounded-lg border border-border">
-        {workspaces.length === 0 && (
-          <li className="p-4 text-muted-foreground">You have no workspaces yet.</li>
+      </div>
+      <Card title="Your workspaces">
+        {workspaces.length === 0 ? (
+          <p data-note>You have no workspaces yet. Create one below.</p>
+        ) : (
+          <ul data-stack style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+            {workspaces.map(({ id, name, role }) => (
+              <li key={id} data-row style={{ justifyContent: 'space-between' }}>
+                <Link href={`/workspaces/${id}`}>{name}</Link>
+                <span data-kit="badge" data-tone="neutral">
+                  {role}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
-        {workspaces.map(({ id, name, role }) => (
-          <li key={id}>
-            <Link
-              href={`/workspaces/${id}`}
-              className="flex justify-between gap-4 p-4 hover:bg-muted"
-            >
-              <span>{name}</span>
-              <span className="text-sm capitalize text-muted-foreground">{role}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <form action={createWorkspaceAction} className="mt-8 grid max-w-md gap-3">
-        <label htmlFor="workspace-name" className="text-sm font-medium">
-          New workspace name
-        </label>
-        <input
-          id="workspace-name"
-          name="name"
-          required
-          maxLength={80}
-          className="h-9 rounded-md border border-input px-3"
-        />
-        {error === 'name' && (
-          <p role="alert">Enter a workspace name between 1 and 80 characters.</p>
-        )}
-        <Button type="submit" className="justify-self-start">
-          Create workspace
-        </Button>
-      </form>
-    </section>
+      </Card>
+      <Card title="Create a workspace">
+        <form action={createWorkspaceAction} data-stack aria-label="Create a workspace">
+          {error === 'name' && (
+            <Alert tone="danger" title="Check the name">
+              Enter a workspace name between 1 and 80 characters.
+            </Alert>
+          )}
+          <TextField label="New workspace name" name="name" required maxLength={80} />
+          <div>
+            <Button tone="primary" type="submit">
+              Create workspace
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </>
   );
 }

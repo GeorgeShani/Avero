@@ -50,3 +50,6 @@ skills:
     - .cursor/skills
     - .gemini/skills
     - .github/skills
+minimumReleaseAgeExclude:
+  - '@ui-sdk/core@0.1.0-beta.10'
+  - '@ui-sdk/react@0.1.0-beta.10'

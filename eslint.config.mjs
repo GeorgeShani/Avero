@@ -31,7 +31,14 @@ export default defineConfig([
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist/**', '**/.next/**', '**/.nx/**', '**/next-env.d.ts', '**/.agent-sdk/**'],
+    ignores: [
+      'packages/ui/src/hardware/**',
+      '**/dist/**',
+      '**/.next/**',
+      '**/.nx/**',
+      '**/next-env.d.ts',
+      '**/.agent-sdk/**',
+    ],
   },
   {
     files: ['apps/web/**/*.{js,jsx,ts,tsx}'],

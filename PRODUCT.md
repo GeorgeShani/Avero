@@ -16,11 +16,11 @@ Avero organizes repository context, agent assignments, execution events, approva
 
 ## Capabilities and constraints
 
-The current application provides workspace creation and membership-based access via Clerk and PostgreSQL. The engineering screens use labeled fixtures while repository integrations and execution services are under development. A sample task can be configured and inspected locally. The signed-in workspace flow remains connected to its existing application services.
+The application provides sign-in, workspace creation, renaming and membership-based access through Clerk and PostgreSQL, plus a versioned workspaces API. Repository integrations, task execution, approvals and evaluations are not built yet. Any engineering screen shown before those services exist is a clearly labeled development fixture, never presented as real activity. The signed-in workspace flow stays connected to its existing application services.
 
 ## Brand commitments
 
-The product name is Avero. The design brief specifies a precise, calm developer workspace with two full themes, an original geometric mark, and a shared component system in the existing Nx repository.
+The product name is Avero. The visual world is "The Bench Instrument", built from the SPEC-01 hardware kit for Vercel UI SDK: tactile, live, driven by keys, dials and screens, with one mineral-green key color and the Signal Lambda mark. The component foundation is Vercel UI SDK in the shared `@avero/ui` package of the Nx repository. The skin is light only. The full record is in DESIGN.md.
 
 ## Accessibility
 

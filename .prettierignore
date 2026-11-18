@@ -7,3 +7,5 @@ coverage/
 next-env.d.ts
 .agent-sdk/
 reports/
+
+packages/ui/src/hardware/
