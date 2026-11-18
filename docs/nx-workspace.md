@@ -10,7 +10,7 @@ pnpm links the private workspace packages. Nx discovers projects from the packag
 
 `@avero/coding-engine` owns the Cursor TypeScript SDK prototype. `@avero/db` owns the platform schema and workspace queries. `@avero/security` defines workspace edit permissions and secret redaction. `@avero/github` provides GitHub repository slug validation. The worker currently exposes process liveness.
 
-Workspace libraries expose compiled exports from `dist/`. Nx builds dependencies first for builds, type checks, tests, and development servers. Use package names in imports and Nx commands. The ESLint boundary rules enforce shared-library isolation, restrict the web app's Node-only imports to its server modules and proxy, and limit the agent service to shared contracts.
+Workspace libraries expose compiled exports from `dist/`. Nx builds dependencies first for builds, type checks, tests, and development servers. Use package names in imports and Nx commands. The ESLint boundary rules enforce shared-library isolation, restrict the web app's Node-only imports to its server modules and proxy, keep UI packages away from data and integration packages, reject imports into another package's internals, and limit the agent service to shared contracts. See [architecture.md](architecture.md#dependency-rules) for the full list.
 
 Builds, type checks, linting, and unit tests are cacheable. Process startup, SDK sign-in, provider runs, and model-based evals execute on demand.
 

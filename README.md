@@ -50,4 +50,4 @@ Workspace membership controls visibility. Owners and admins can rename a workspa
 
 See [local infrastructure and images](infra/README.md) for the Compose settings and Docker build commands.
 
-[Workspace architecture](docs/nx-workspace.md) · [Cursor SDK setup and verification](docs/sdk-compatibility.md)
+[Architecture](docs/architecture.md) · [Development guide](docs/development.md) · [Nx workspace](docs/nx-workspace.md) · [Cursor SDK setup and verification](docs/sdk-compatibility.md)

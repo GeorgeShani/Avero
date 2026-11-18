@@ -9,7 +9,20 @@ const boundaries = {
     { sourceTag: 'type:app', onlyDependOnLibsWithTags: ['scope:shared'] },
     { sourceTag: 'scope:shared', onlyDependOnLibsWithTags: ['scope:shared'] },
     { sourceTag: 'runtime:browser', onlyDependOnLibsWithTags: ['runtime:browser'] },
+    {
+      sourceTag: 'type:ui',
+      notDependOnLibsWithTags: ['type:data-access', 'type:integration', 'runtime:node'],
+    },
     { sourceTag: 'scope:agent', onlyDependOnLibsWithTags: ['type:contract'] },
+  ],
+};
+
+const internalImports = {
+  patterns: [
+    {
+      group: ['@avero/*/**', '!@avero/ui/**'],
+      message: 'Import another package through its public entry point, not its internals.',
+    },
   ],
 };
 
@@ -32,6 +45,7 @@ export default defineConfig([
     ],
     rules: {
       '@nx/enforce-module-boundaries': ['error', boundaries],
+      'no-restricted-imports': ['error', internalImports],
     },
   },
   {

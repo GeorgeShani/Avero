@@ -53,33 +53,33 @@ It is an AI engineering workspace that extends existing development workflows.
 
 Use the following stack unless a verified technical incompatibility requires an alternative.
 
-| Layer | Technology |
-|---|---|
-| Monorepo | Nx |
-| Package manager | pnpm |
-| Language | TypeScript |
-| Runtime | Node.js |
-| Frontend | Next.js App Router |
-| UI | React |
-| Styling | Tailwind CSS v4 |
-| Components | shadcn/ui |
-| Icons | Lucide |
-| Authentication | Clerk |
-| Database | PostgreSQL |
-| ORM | Drizzle ORM |
-| Validation | Zod |
-| Background processing | BullMQ |
-| Queue infrastructure | Redis |
-| Coding agents | Cursor SDK (`@cursor/sdk`) |
-| Custom agent workflows | Cursor Agent SDK |
-| GitHub integration | Octokit + GitHub App |
-| Realtime communication | Server-Sent Events |
-| Artifact storage | S3-compatible storage |
-| Observability | OpenTelemetry |
-| Unit testing | Vitest |
-| End-to-end testing | Playwright |
-| Web hosting | Vercel |
-| Worker hosting | Persistent Node.js container |
+| Layer                  | Technology                                      |
+| ---------------------- | ----------------------------------------------- |
+| Monorepo               | Nx                                              |
+| Package manager        | pnpm                                            |
+| Language               | TypeScript                                      |
+| Runtime                | Node.js                                         |
+| Frontend               | Next.js App Router                              |
+| UI                     | React                                           |
+| Styling                | Tailwind CSS v4                                 |
+| Components             | Vercel UI SDK (`@ui-sdk/react`, `@ui-sdk/core`) |
+| Icons                  | Lucide                                          |
+| Authentication         | Clerk                                           |
+| Database               | PostgreSQL                                      |
+| ORM                    | Drizzle ORM                                     |
+| Validation             | Zod                                             |
+| Background processing  | BullMQ                                          |
+| Queue infrastructure   | Redis                                           |
+| Coding agents          | Cursor SDK (`@cursor/sdk`)                      |
+| Custom agent workflows | Cursor Agent SDK (`@grok/agent-sdk`)            |
+| GitHub integration     | Octokit + GitHub App                            |
+| Realtime communication | Server-Sent Events                              |
+| Artifact storage       | S3-compatible storage                           |
+| Observability          | OpenTelemetry                                   |
+| Unit testing           | Vitest                                          |
+| End-to-end testing     | Playwright                                      |
+| Web hosting            | Vercel                                          |
+| Worker hosting         | Persistent Node.js container                    |
 
 ## Important Requirements
 
@@ -625,21 +625,13 @@ Example:
 
 ```typescript
 interface CodingEngine {
-  start(
-    input: StartCodingTask
-  ): Promise<AgentSession>;
+  start(input: StartCodingTask): Promise<AgentSession>;
 
-  resume(
-    sessionId: string
-  ): Promise<AgentSession>;
+  resume(sessionId: string): Promise<AgentSession>;
 
-  cancel(
-    runId: string
-  ): Promise<void>;
+  cancel(runId: string): Promise<void>;
 
-  getResult(
-    runId: string
-  ): Promise<CodingResult>;
+  getResult(runId: string): Promise<CodingResult>;
 }
 ```
 
@@ -667,6 +659,8 @@ Create the specialized agent project inside:
 ```text
 apps/agent-service/
 ```
+
+The installable package is `@grok/agent-sdk` (formerly `@cursor/bdk`), as documented at https://cursor.com/docs/agent-sdk.
 
 Use Cursor Agent SDK for:
 
@@ -912,16 +906,16 @@ Example:
 
 ```typescript
 type AveroEventType =
-  | "run.started"
-  | "agent.message"
-  | "tool.started"
-  | "tool.completed"
-  | "tool.failed"
-  | "approval.requested"
-  | "artifact.created"
-  | "run.completed"
-  | "run.failed"
-  | "run.cancelled";
+  | 'run.started'
+  | 'agent.message'
+  | 'tool.started'
+  | 'tool.completed'
+  | 'tool.failed'
+  | 'approval.requested'
+  | 'artifact.created'
+  | 'run.completed'
+  | 'run.failed'
+  | 'run.cancelled';
 
 interface AveroEvent {
   id: string;
@@ -1211,6 +1205,8 @@ Avoid introducing paid infrastructure before it is necessary.
 
 **Exit Criteria:** Both SDKs execute real tasks.
 
+**Status (2026-11-18):** not met. `pnpm verify:sdk` passes locally: SDK builds, agent project validation, eval discovery and the custom tool. The authenticated prototypes and the evaluation have never run against a live model and need Cursor credentials (`pnpm verify:sdk --live`). Boxes are checked only for what has been run.
+
 ## Milestone 1 — Nx Foundation
 
 - [x] Initialize Nx workspace.
@@ -1226,9 +1222,18 @@ Avoid introducing paid infrastructure before it is necessary.
 - [x] Configure linting.
 - [x] Configure unit tests.
 - [x] Verify project graph.
-- [x] Verify workspace builds. 
+- [x] Verify workspace builds.
 
 **Exit Criteria:** The Nx monorepo builds successfully and project dependencies are correctly identified.
+
+**Status (2026-11-18):** met. `pnpm check` (lint, typecheck, test, build) ran 43 of 43 tasks successfully from a clean `.next`, and `pnpm verify:workspace` confirmed the projects, tags, targets and dependency edges. Boundary rules were proven by deliberately bad imports (ui to db, web to db outside server modules, a deep import into another package's `dist`), each rejected by lint.
+
+Known limits that do not block the exit criteria:
+
+- The worker is a hand-built health server, not generated by `@nx/node`. Job processing is Milestone 3.
+- Unit tests run in 10 of 11 projects. `@avero/ui` gets tests with the design-system rebuild.
+- There is no `e2e` target yet (Playwright, Milestone 2) and no CI workflow (Milestone 7).
+- Tags differ from section 5: `type:contract` and `runtime:*` are used and `type:feature` is not. See [docs/architecture.md](docs/architecture.md#dependency-rules).
 
 ## Milestone 2 — Platform Foundation
 
@@ -1237,7 +1242,7 @@ Avoid introducing paid infrastructure before it is necessary.
 - [ ] Provision PostgreSQL.
 - [x] Configure Drizzle.
 - [x] Create database schema.
-- [x] Configure Redis.
+- [x] Configure Redis (local Docker service only; no client code until Milestone 3).
 - [x] Create shared Zod contracts.
 - [x] Implement authorization.
 - [x] Add logging.

@@ -11,3 +11,4 @@ next-env.d.ts
 reports/
 *.log
 .impeccable/live/
+.impeccable/questions/
