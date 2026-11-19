@@ -7,24 +7,28 @@
  * The filter goes on the root's children, not the root, because a filter on an ancestor
  * would turn the fixed navbar into one that scrolls away with the page.
  */
-html[data-theme='dark'] {
-  color-scheme: dark;
-  background: #131312;
+/* No color-scheme: dark here. The skin is drawn light and inverted, and a dark scheme on the
+   page would flip the text colors that follow the scheme, so they would be inverted twice. */
+html[data-skin-theme='dark'] {
+  background: #0d0d0c;
+  scrollbar-color: #4a4a47 #131312;
 }
 
-html[data-theme='dark'] [data-skin='hardware'] {
+html[data-skin-theme='dark'] [data-skin='hardware'] {
   background:
-    radial-gradient(circle, rgb(255 255 255 / 0.09) 1px, transparent 1.2px) 0 0 / 16px 16px,
-    #151514;
+    radial-gradient(circle, rgb(255 255 255 / 0.08) 1px, transparent 1.2px) 0 0 / 16px 16px,
+    #0d0d0c;
 }
 
-html[data-theme='dark'] [data-skin='hardware'] > * {
-  filter: invert(1) hue-rotate(180deg);
+/* Inverted to 90%, not all the way: white surfaces become dark gray instead of pure black, so
+   cards and thumbs stay distinct from the page, and text is a soft off-white. */
+html[data-skin-theme='dark'] [data-skin='hardware'] > * {
+  filter: invert(0.9) hue-rotate(180deg);
 }
 
 /* Dark by design (glass, screens), so they are inverted back. The picker wheel's scroller is
    composited on its own and is not reached by the inversion above, so it is inverted directly. */
-html[data-theme='dark']
+html[data-skin-theme='dark']
   [data-skin='hardware']
   :is(
     [data-kit='display-bezel'],
@@ -34,4 +38,9 @@ html[data-theme='dark']
     [data-kit='wheel']
   ) {
   filter: invert(1) hue-rotate(180deg);
+}
+
+/* Light parts that turn almost black when inverted are lifted so they still read as raised. */
+html[data-skin-theme='dark'] [data-skin='hardware'] [data-kit='segmented-indicator']:not(#_) {
+  background: linear-gradient(0deg, #a2a29c, #b6b6b0);
 }

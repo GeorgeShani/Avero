@@ -22,7 +22,7 @@ export function resolveTheme(mode: ThemeMode): 'light' | 'dark' {
 }
 
 function apply(mode: ThemeMode) {
-  document.documentElement.dataset.theme = resolveTheme(mode);
+  document.documentElement.dataset.skinTheme = resolveTheme(mode);
 }
 
 export function setMode(mode: ThemeMode) {

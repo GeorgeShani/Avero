@@ -15,8 +15,10 @@ export const metadata: Metadata = {
 const mineral = { l: 0.5, c: 0.1, h: 163 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  // UI SDK keys its own palette on data-theme. It stays "light" because the dark theme is the
+  // light skin inverted (data-skin-theme, set by the boot script).
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>

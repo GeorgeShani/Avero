@@ -1087,16 +1087,19 @@
   }
 }
 
-/* The navbar call to action: same height as its links, centered. */
+/* The navbar call to action: a compact key that sits inside the bar, lip included. */
 [data-skin='hardware'] [data-kit='navbar'] a[data-mk='nav-cta'] {
   display: inline-flex;
   align-items: center;
   align-self: center;
-  height: 34px;
+  height: 28px;
+  min-height: 0;
   margin: 0;
-  padding: 0 16px;
+  padding: 0 14px;
   flex-shrink: 0;
+  font-size: 10px;
   white-space: nowrap;
+  translate: 0 -2px;
 }
 
 /* Agents ------------------------------------------------------------------------------------- */
@@ -1348,6 +1351,23 @@
 }
 
 /* Dark theme: the typed command is already dark, so it is inverted back (see dark.css). */
-html[data-theme='dark'] [data-skin='hardware'] [data-mk='typed'] code {
+html[data-skin-theme='dark'] [data-skin='hardware'] [data-mk='typed'] code {
   filter: invert(1) hue-rotate(180deg);
+}
+
+/* Dark theme: lift the parts that would invert to near-black (see dark.css). */
+html[data-skin-theme='dark'] [data-skin='hardware'] [data-mk='bar-col']:not([data-on]) i {
+  background: #a4a49d;
+}
+
+html[data-skin-theme='dark'] [data-skin='hardware'] [data-mk='checks'] li:not([data-shown]) {
+  opacity: 0.85;
+}
+
+html[data-skin-theme='dark']
+  [data-skin='hardware']
+  [data-mk='checks']
+  li:not([data-shown])
+  [data-mk='mark'] {
+  background: #a9a9a3;
 }
