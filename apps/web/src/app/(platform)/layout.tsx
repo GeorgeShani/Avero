@@ -2,6 +2,7 @@ import { Alert, Lockup, Navbar } from '@avero/ui';
 import { ClerkProvider } from '@clerk/nextjs';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { ThemeSwitch } from '../../components/theme-switch';
 import { clerkSettings } from '../../server/workspaces';
 
 export const dynamic = 'force-dynamic';
@@ -21,10 +22,12 @@ function Frame({ children }: { children: ReactNode }) {
         }
         label="Account"
         items={[
-          { href: '/', label: 'Console' },
+          { href: '/overview', label: 'Console' },
           { href: '/workspaces', label: 'Workspaces' },
         ]}
-      />
+      >
+        <ThemeSwitch />
+      </Navbar>
       <main data-kit="sheet" id="main">
         <div data-page style={{ maxWidth: 640 }}>
           {children}

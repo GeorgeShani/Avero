@@ -1,0 +1,37 @@
+/*
+ * Dark theme. The skin paints its light plastic with about fifteen hundred literal colors, so
+ * instead of redefining each one the panel is inverted as a whole: lightness flips and the
+ * hue is rotated back, which keeps the key color green. Things that are dark by design (the
+ * display glass) are inverted a second time so they stay dark.
+ *
+ * The filter goes on the root's children, not the root, because a filter on an ancestor
+ * would turn the fixed navbar into one that scrolls away with the page.
+ */
+html[data-theme='dark'] {
+  color-scheme: dark;
+  background: #131312;
+}
+
+html[data-theme='dark'] [data-skin='hardware'] {
+  background:
+    radial-gradient(circle, rgb(255 255 255 / 0.09) 1px, transparent 1.2px) 0 0 / 16px 16px,
+    #151514;
+}
+
+html[data-theme='dark'] [data-skin='hardware'] > * {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Dark by design (glass, screens), so they are inverted back. The picker wheel's scroller is
+   composited on its own and is not reached by the inversion above, so it is inverted directly. */
+html[data-theme='dark']
+  [data-skin='hardware']
+  :is(
+    [data-kit='display-bezel'],
+    [data-kit='input'],
+    [data-kit='otp-slot'],
+    [data-kit='code-body'],
+    [data-kit='wheel']
+  ) {
+  filter: invert(1) hue-rotate(180deg);
+}

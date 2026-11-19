@@ -1,5 +1,5 @@
-import { ApprovalsCard } from '../../components/approvals-card';
-import { OverviewConsole } from '../../components/overview-console';
+import { ApprovalsCard } from '../../../components/approvals-card';
+import { OverviewConsole } from '../../../components/overview-console';
 
 export default function OverviewPage() {
   return (

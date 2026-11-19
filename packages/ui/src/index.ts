@@ -65,3 +65,4 @@ export { Lockup, Mark, Wordmark } from './components/brand.tsx';
 export { StatusSymbol, TaskStatusBadge, statusLabel, taskStatuses } from './components/status.tsx';
 export type { TaskStatus } from './components/status.tsx';
 export { onSoundChange, setSoundEnabled, soundEnabled } from './hardware/lib/sound.ts';
+export * from './agent.ts';

@@ -172,8 +172,14 @@
   }
 }
 
-/* The hardware skin is light only; keep UI SDK's light-dark() colors on their light side. */
+/* The skin is drawn light. The dark theme (dark.css) inverts it, so keep light-dark() colors on their light side. */
 :root,
 [data-skin='hardware'] {
   color-scheme: light;
+}
+
+/* The theme key's glyph is the whole legend, so it is larger than body text. */
+[data-skin='hardware'] [data-theme-switch] {
+  font-size: 17px;
+  line-height: 1;
 }

@@ -46,6 +46,10 @@ From the official docs ([Cursor TypeScript SDK](https://cursor.com/docs/sdk/type
 - **Evals** with trajectory assertions (`calledTool`, `notCalledTool`, `maxToolCalls`) and a documented **hillclimbing** loop: fix inputs, change one lever, rerun, keep only measured wins.
 - Channels for GitHub, Slack, webhooks, schedules; OpenTelemetry export; artifacts; peer agents; a guide for handing work to Cursor cloud agents and steering them.
 
+**Hosting agents on Cursor.** An Agent SDK project can be deployed to Cursor-managed hosting with `agent-sdk deploy` (from a pushed Git ref), or run on your own Node 22.13+ server with `agent-sdk serve`. A deployed agent gets a stable URL and manages from the Deployed Agents dashboard (roles Viewer, Editor, Owner). It exposes an HTTP API for durable sessions, follow-ups, a live NDJSON event stream with replay from an index, per-turn cost, tool calls without a model turn, and an MCP endpoint. It also comes with a built-in playground (chat, trace, raw events, evals), secrets (`agent-sdk secret set`), an egress allowlist, session state that survives redeploys, cron schedules and reminders, and artifacts. Triggers come from GitHub, GitLab, Bitbucket, Slack and PagerDuty channels, webhooks and deployment events; GitHub events are pulled through the Cursor account, so no public webhook URL is needed. Hosted agents can call each other by slug, hand coding work to Cursor cloud agents and steer them, and open pull requests against their own source. Limits: Privacy Mode (Legacy) blocks deploys; some teams cap deployments (default 20) and deploys per day (100). I read this in the SDK's shipped docs and have not deployed anything, since that needs your Cursor login.
+
+**What that means for Avero:** the Verdict reviewer and the eval suites can be deployed on Cursor hosting instead of running our own worker, queue and webhook receiver. Avero Cloud would call the hosted agent's session API and stream its events into Scope. That removes most of the planned BullMQ, Redis and GitHub-webhook work, at the price of depending on Cursor's hosting and its beta surface. Cursor's own playground already shows traces for one agent, so Scope's value is across runs, across agents and with verification and bench data on top.
+
 The two SDKs fit together: Cursor SDK runs and records the coding agents; Agent SDK builds the reviewer and evaluator agents and gives us a tested way to improve them.
 
 ## 4. Proposed product: Avero is the flight recorder and test bench for coding agents
@@ -83,16 +87,16 @@ What we still do not build first: a standalone launcher with no recording, Slack
 
 **One record format, two ways to run.** Ship the local tool first as `npx avero` (CLI plus a local web UI reading `.avero/`): adoption cost is one command and one API key. Avero Cloud (Postgres, Clerk, GitHub App, cloud agents, Slack through Agent SDK channels) is built second over the _same_ run-record format, so a recording made locally opens unchanged in the hosted workspace.
 
-| Package                                                | Plan                                                                                                               |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `@avero/contracts`                                     | Grow: run-record schema, event types, bench task and result schemas.                                               |
-| `@avero/coding-engine`                                 | Becomes the recorder: wraps the Cursor SDK, normalizes events, writes JSONL. Keep behind the provider abstraction. |
-| `@avero/agent-service`                                 | Home of the Verdict reviewer and the eval suites (trajectory assertions).                                          |
-| `@avero/security`                                      | Keep `redactSecrets`; add policy and gate helpers.                                                                 |
-| `@avero/ui`                                            | Keep the hardware kit; replace simulated screens with replay, verdict and bench views.                             |
-| `@avero/cli` (new)                                     | `run`, `replay`, `verdict`, `bench`, `export`, `serve`.                                                            |
-| `apps/web`                                             | Becomes the local viewer. Decide Next.js standalone vs a Vite SPA for `npx` size and start-up.                     |
-| `apps/worker`, `@avero/github`, Clerk, Postgres, Redis | Paused until Phase 5, then become Avero Cloud. Workspace and auth code stays as is.                                |
+| Package                                                | Plan                                                                                                                                                                                            |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@avero/contracts`                                     | Grow: run-record schema, event types, bench task and result schemas.                                                                                                                            |
+| `@avero/coding-engine`                                 | Becomes the recorder: wraps the Cursor SDK, normalizes events, writes JSONL. Keep behind the provider abstraction.                                                                              |
+| `@avero/agent-service`                                 | Home of the Verdict reviewer and the eval suites (trajectory assertions).                                                                                                                       |
+| `@avero/security`                                      | Keep `redactSecrets`; add policy and gate helpers.                                                                                                                                              |
+| `@avero/ui`                                            | Keep the hardware kit; replace simulated screens with replay, verdict and bench views.                                                                                                          |
+| `@avero/cli` (new)                                     | `run`, `replay`, `verdict`, `bench`, `export`, `serve`.                                                                                                                                         |
+| `apps/web`                                             | Becomes the local viewer. Decide Next.js standalone vs a Vite SPA for `npx` size and start-up.                                                                                                  |
+| `apps/worker`, `@avero/github`, Clerk, Postgres, Redis | Paused until Phase 5, then become Avero Cloud. The worker and queue may shrink or disappear if Cursor-hosted agents run the Verdict reviewer and channels. Workspace and auth code stays as is. |
 
 ## 6. Roadmap
 

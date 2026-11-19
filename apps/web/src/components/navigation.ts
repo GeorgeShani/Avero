@@ -1,5 +1,5 @@
 export const navigation = [
-  { href: '/', label: 'Overview' },
+  { href: '/overview', label: 'Overview' },
   { href: '/tasks', label: 'Tasks' },
   { href: '/repositories', label: 'Repositories' },
   { href: '/agents', label: 'Agents' },

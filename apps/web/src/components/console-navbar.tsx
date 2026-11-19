@@ -4,6 +4,7 @@ import { CommandPalette, Lockup, Navbar } from '@avero/ui';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { commandTargets, isCurrent, navigation } from './navigation';
+import { ThemeSwitch } from './theme-switch';
 
 export function ConsoleNavbar() {
   const pathname = usePathname();
@@ -32,6 +33,7 @@ export function ConsoleNavbar() {
           if (target) router.push(target.href);
         }}
       />
+      <ThemeSwitch />
     </Navbar>
   );
 }
