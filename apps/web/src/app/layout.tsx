@@ -3,6 +3,7 @@ import '@fontsource-variable/red-hat-mono';
 import { Hardware, Toasts } from '@avero/ui';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { NavOffset } from '../components/nav-offset';
 import { themeBootScript } from '../lib/theme-boot';
 import './globals.css';
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       </head>
       <body>
         <Hardware data-site keyColor={mineral}>
+          <NavOffset />
           {children}
           <Toasts />
         </Hardware>

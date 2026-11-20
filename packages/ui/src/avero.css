@@ -78,6 +78,15 @@
   color-scheme: light;
 }
 
+/* The fixed navbar takes two rows at this width (the kit wraps it at 760px), 90px with the theme key.
+   NavOffset replaces this with the bar's measured height; it only keeps the first paint, before
+   hydration, from starting under the bar. */
+@media (max-width: 760px) {
+  [data-skin='hardware'][data-site] {
+    --nav-h: 90px;
+  }
+}
+
 /* The theme key's glyph is the whole legend, so it is larger than body text. */
 [data-skin='hardware'] [data-kit='navbar'] [data-theme-switch] {
   width: 32px;
