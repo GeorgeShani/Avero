@@ -1,0 +1,37 @@
+{
+  "name": "@avero/share",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@avero/contracts": "workspace:*",
+    "@avero/run-store": "workspace:*"
+  },
+  "nx": {
+    "tags": [
+      "scope:shared",
+      "type:util",
+      "runtime:node"
+    ],
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      }
+    }
+  }
+}

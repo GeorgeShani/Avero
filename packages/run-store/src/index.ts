@@ -126,3 +126,4 @@ export async function listRuns(dir: string): Promise<RunListing> {
   runs.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
   return { runs, problems };
 }
+export * from './bench.ts';

@@ -203,6 +203,9 @@ importers:
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
       eslint:
         specifier: ^9.39.4
         version: 9.39.5(jiti@2.7.0)(supports-color@8.1.1)
@@ -239,15 +242,24 @@ importers:
 
   apps/cli:
     dependencies:
+      '@avero/bench':
+        specifier: workspace:*
+        version: link:../../packages/bench
       '@avero/coding-engine':
         specifier: workspace:*
         version: link:../../packages/coding-engine
       '@avero/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@avero/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
       '@avero/run-store':
         specifier: workspace:*
         version: link:../../packages/run-store
+      '@avero/share':
+        specifier: workspace:*
+        version: link:../../packages/share
 
   apps/web:
     dependencies:
@@ -322,6 +334,24 @@ importers:
         specifier: workspace:*
         version: link:../../packages/observability
 
+  packages/bench:
+    dependencies:
+      '@avero/coding-engine':
+        specifier: workspace:*
+        version: link:../coding-engine
+      '@avero/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@avero/run-store':
+        specifier: workspace:*
+        version: link:../run-store
+      '@cursor/sdk':
+        specifier: 1.4.0
+        version: 1.4.0(zod@4.6.7)
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+
   packages/coding-engine:
     dependencies:
       '@avero/contracts':
@@ -377,6 +407,24 @@ importers:
         specifier: 4.6.7
         version: 4.6.7
 
+  packages/mcp:
+    dependencies:
+      '@avero/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@avero/run-store':
+        specifier: workspace:*
+        version: link:../run-store
+      '@avero/share':
+        specifier: workspace:*
+        version: link:../share
+      '@modelcontextprotocol/sdk':
+        specifier: 1.32.2
+        version: 1.32.2(supports-color@8.1.1)(zod@4.6.7)
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+
   packages/observability: {}
 
   packages/run-store:
@@ -390,6 +438,15 @@ importers:
       '@avero/contracts':
         specifier: workspace:*
         version: link:../contracts
+
+  packages/share:
+    dependencies:
+      '@avero/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@avero/run-store':
+        specifier: workspace:*
+        version: link:../run-store
 
   packages/ui:
     dependencies:
@@ -7777,7 +7834,7 @@ snapshots:
     dependencies:
       '@hono/node-server': 2.1.8(hono@4.13.18)
       ajv: 8.20.0
-      ajv-formats: 3.0.1(ajv@8.20.0)
+      ajv-formats: 3.0.1
       content-type: 1.0.5
       cors: 2.8.6
       cross-spawn: 7.0.6
@@ -9115,8 +9172,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  ajv-formats@3.0.1(ajv@8.20.0):
-    optionalDependencies:
+  ajv-formats@3.0.1:
+    dependencies:
       ajv: 8.20.0
 
   ajv-keywords@5.1.0(ajv@8.20.0):
@@ -12133,7 +12190,7 @@ snapshots:
     dependencies:
       '@types/json-schema': 7.0.15
       ajv: 8.20.0
-      ajv-formats: 3.0.1(ajv@8.20.0)
+      ajv-formats: 3.0.1
       ajv-keywords: 5.1.0(ajv@8.20.0)
     optionalDependencies:
       webpack: 5.112.2(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.33)(sharp@0.35.5(@types/node@24.19.2))

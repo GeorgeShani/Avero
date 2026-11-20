@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
@@ -26,7 +25,12 @@ const usage = `Avero: record, replay and review coding-agent runs.
   avero verdict <run-id> [--model <id>] [--repo <dir>] [--runs-dir <dir>]
   avero decide <run-id> approve|changes|reject [--note <text>] [--runs-dir <dir>]
   avero eval-reviewer [--model <id>]   (checks the reviewer on runs whose answer is known)
-  avero serve [--port <n>] [--runs-dir <dir>]   (from this repository: pnpm avero serve)
+  avero bench init|run|show|hillclimb ...   (which model and rules work best on your repository;
+      see: avero bench --help)
+  avero export <run-id> [--out <file>] [--runs-dir <dir>]   (one HTML file with the replay)
+  avero trace <run-id> [--out <file>] [--revision <sha>] [--runs-dir <dir>]   (Agent Trace JSON)
+  avero serve [--port <n>] [--runs-dir <dir>]   (read-only viewer on http://127.0.0.1:4173)
+  avero mcp [--runs-dir <dir>]   (an MCP server over your runs, for your own agent)
 
 \`run\` lets a Cursor agent edit the folder you point it at, then saves a record of everything
 it did to <dir>/.avero/runs. It needs CURSOR_API_KEY (a .env file in this folder is read).`;
@@ -303,10 +307,7 @@ try {
   else if (command === 'verdict') process.exitCode = await review(rest[0]);
   else if (command === 'decide') process.exitCode = await decide(rest[0], rest[1]);
   else if (command === 'eval-reviewer') process.exitCode = await evalReviewer();
-  else if (command === 'serve') {
-    console.error('The viewer starts through the repository script: pnpm avero serve');
-    process.exitCode = 2;
-  } else {
+  else {
     console.error(`Unknown command "${command}".\n\n${usage}`);
     process.exitCode = 2;
   }

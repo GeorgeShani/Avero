@@ -35,3 +35,5 @@ export type Workspace = z.infer<typeof workspaceSchema>;
 
 export * from './run-record.ts';
 export * from './verdict.ts';
+export * from './bench.ts';
+export * from './hillclimb.ts';

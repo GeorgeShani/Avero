@@ -18,7 +18,7 @@ Status: direction agreed 2026-11-19. It replaces the "SaaS orchestration dashboa
 
 One real run (30 s, 49.6k tokens, 2 files, tests passing) was recorded on Cursor Pro and replayed.
 
-**Known gaps.** The Cursor sandbox is unsupported on this Windows machine, so recordings here use `--no-sandbox` in a throwaway folder; the CLI explains this when the sandbox is refused. `pnpm avero serve` works from this repository only; packaging the viewer for `npx` is Phase 4. The replay only animates in a visible window, so it was checked through the DOM and in earlier browser sessions, not on every change.
+**Known gaps.** The Cursor sandbox is unsupported on this Windows machine, so recordings here use `--no-sandbox` in a throwaway folder; the CLI explains this when the sandbox is refused. The viewer is now `avero serve` (Phase 4), and `pnpm avero console` runs the fuller Next.js console from this repository. The replay only animates in a visible window, so it was checked through the DOM and in earlier browser sessions, not on every change.
 
 **Phase 2, mostly done 2026-11-20.** Built and tested:
 
@@ -131,6 +131,29 @@ What we still do not build first: a standalone launcher with no recording, Slack
 | `@avero/cli` (new)                                     | `run`, `replay`, `verdict`, `bench`, `export`, `serve`.                                                                                                                                         |
 | `apps/web`                                             | Becomes the local viewer. Decide Next.js standalone vs a Vite SPA for `npx` size and start-up.                                                                                                  |
 | `apps/worker`, `@avero/github`, Clerk, Postgres, Redis | Paused until Phase 5, then become Avero Cloud. The worker and queue may shrink or disappear if Cursor-hosted agents run the Verdict reviewer and channels. Workspace and auth code stays as is. |
+
+**Phase 3, built and run live 2026-11-20.**
+
+- **Suite from history.** `avero bench init` finds commits that changed source and tests together; the task is the commit message, the start is the parent, the judge is the commit's own test files. Each candidate is validated (tests pass at the solution, fail at the parent with the solution's tests added) and dropped with a reason if not.
+- **Matrix runner.** `avero bench run` runs every task under every setup (model, with and without each rules file) in throwaway `git worktree`s, records each attempt as an ordinary run, then puts the original tests back and runs them, so an agent that edits tests cannot pass. The repository is never touched.
+- **Numbers.** Pass rate with a 95% Wilson interval, tokens and time per resolved task counting failed attempts, and cost per resolved task only when the account reports billed cost (otherwise unknown, or an estimate from `--prices`, labelled).
+- **Hillclimb.** `avero bench hillclimb` has an agent propose one rules change at a time from the failed tasks, refuses a proposal that names a task, test or path from the suite, and keeps a change only if more tasks resolve or the same number resolve with at least 10% fewer tokens. `--holdout` judges on tasks the proposer never saw.
+- **Console.** `/bench`, `/bench/<suite>` and `/bench/<suite>/<result>`: the setup table, a per-task grid whose cells open the recorded run, and the hillclimb history.
+- Details and limits: [docs/bench.md](bench.md).
+
+Run live on Cursor Pro against a small demo repository (`tools/scripts/make-demo-repo.mjs`): 2 tasks x 2 setups (composer-2.5, with and without a three-line rules file), 1 repeat, capped at 300k tokens and 240 s. Result: 1 of 2 resolved under each setup, about 135k tokens and 43 to 50 s per resolved task, cost unknown on this account. That is four attempts, so it shows the pipeline works and says nothing about which setup is better. The unresolved task (`chunk`) failed under both setups because its tests required an error for non-whole sizes that the commit message did not state: a fair demonstration that a mined task is only as fair as its commit message. A small hillclimb (3 tasks, 1 held out) measured the starting rules, found nothing failing on the visible tasks, and so proposed no change. The proposal path is covered by tests with a fake agent, not yet by a live run.
+
+**Phase 3 gaps.** No live hillclimb has produced and measured a real rules change. Task quality depends on commit messages; there is no check that a message states what the tests check. Billed cost is unavailable for this account. The first suite tried had 4 tasks; a useful one needs more.
+
+**Phase 4, built and checked 2026-11-20.**
+
+- **Share.** `avero export` writes one self-contained HTML replay (strict CSP, record text only ever inserted as text, known secret formats redacted). `avero serve` is a read-only local viewer with no Next.js. `@avero/share` is tested against a hostile record (script and image injection) and the page was loaded in a real browser.
+- **Agent Trace.** `avero trace` writes Agent Trace JSON (version `0.1`) for the lines the agent added. The spec has ambiguities (the schema's version pattern rejects the spec's own `0.1.0` examples; the revision is meant to be the commit containing the code, but a record only knows the base commit), recorded in [docs/sharing.md](sharing.md).
+- **MCP.** `avero mcp` serves six read-only tools over stdio (list, get, events, verdict, changes, search) using the official MCP SDK. Checked over a real stdio session against real records.
+- **npx packaging.** `pnpm build:npm` bundles the CLI, bench, share and MCP into `dist-npm/avero` (about 290 kB packed) with `@cursor/sdk` as the one dependency. The tarball installed into a clean folder and ran `--help`, `list`, `export`, `serve` (the replay page worked in the browser) and `bench show`. **Nothing is published.** The name `avero` was free on npm when checked (2026-11-20).
+- README quick start, MIT `LICENSE`, and the demo repository script.
+
+**Phase 4 gaps.** Not published to npm; the license holder in `LICENSE` is "Avero contributors", change it if you want a name. The Cursor SDK terms for redistributing a tool that uses the user's own key are still unchecked (section 8). No recorded demo video and no public read-only viewer seeded with runs. `avero serve` cannot record decisions (use `avero decide` or the Next.js console). The marketing page's Bench demo still shows illustrative data. The 60-second quick start has been run in pieces (record, serve, export on this machine), not by a stranger on a fresh machine, and `npx avero` has not been tried against the registry because nothing is published.
 
 ## 6. Roadmap
 

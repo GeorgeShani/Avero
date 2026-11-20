@@ -1,0 +1,37 @@
+{
+  "name": "@avero/bench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@avero/coding-engine": "workspace:*",
+    "@avero/contracts": "workspace:*",
+    "@avero/run-store": "workspace:*",
+    "@cursor/sdk": "1.4.0",
+    "zod": "4.6.7"
+  },
+  "nx": {
+    "tags": [
+      "scope:shared",
+      "type:integration",
+      "runtime:node"
+    ],
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 export const navigation = [
   { href: '/overview', label: 'Overview' },
   { href: '/runs', label: 'Runs' },
+  { href: '/bench', label: 'Bench' },
   { href: '/settings', label: 'Settings' },
 ] as const;
 

@@ -4,16 +4,19 @@
   "private": true,
   "type": "module",
   "bin": {
-    "avero": "./dist/cli.js"
+    "avero": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@avero/bench": "workspace:*",
     "@avero/coding-engine": "workspace:*",
     "@avero/contracts": "workspace:*",
-    "@avero/run-store": "workspace:*"
+    "@avero/mcp": "workspace:*",
+    "@avero/run-store": "workspace:*",
+    "@avero/share": "workspace:*"
   },
   "nx": {
     "tags": [
