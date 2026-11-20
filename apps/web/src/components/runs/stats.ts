@@ -1,4 +1,4 @@
-import type { RunSummary } from '@avero/contracts';
+import type { RunListItem } from '@avero/contracts';
 
 export type OverviewStats = {
   runs: number;
@@ -14,11 +14,16 @@ export type OverviewStats = {
   averageDurationMs: number | null;
   /** Sum of billed cost in cents, or null when no run reported any. */
   costCents: number | null;
+  /** Finished runs nobody has decided on yet. */
+  awaitingDecision: number;
+  /** Of those, how many the reviewer rated medium or high risk. */
+  awaitingRisky: number;
 };
 
-export function overviewStats(runs: readonly RunSummary[]): OverviewStats {
+export function overviewStats(runs: readonly RunListItem[]): OverviewStats {
   const finished = runs.filter((run) => run.status === 'FINISHED');
   const reported = runs.filter((run) => run.costCents !== null);
+  const awaiting = finished.filter((run) => !run.review.decision);
   return {
     runs: runs.length,
     running: runs.filter((run) => run.status === 'RUNNING').length,
@@ -34,5 +39,9 @@ export function overviewStats(runs: readonly RunSummary[]): OverviewStats {
         : finished.reduce((sum, run) => sum + run.durationMs, 0) / finished.length,
     costCents:
       reported.length === 0 ? null : reported.reduce((sum, run) => sum + (run.costCents ?? 0), 0),
+    awaitingDecision: awaiting.length,
+    awaitingRisky: awaiting.filter(
+      (run) => run.review.risk === 'medium' || run.review.risk === 'high',
+    ).length,
   };
 }

@@ -121,6 +121,18 @@ export const noteEventSchema = z.strictObject({
   text: z.string().max(4000),
 });
 
+/**
+ * A point where Avero stopped for a person or a limit: the plan waiting for approval, an approval
+ * the agent asked for, or a token or time cap that cancelled the run.
+ */
+export const gateEventSchema = z.strictObject({
+  type: z.literal('gate'),
+  ...stamp,
+  kind: z.enum(['plan', 'approval', 'limit']),
+  outcome: z.enum(['requested', 'approved', 'denied', 'tripped']),
+  detail: z.string().max(8000),
+});
+
 export const runFinishedSchema = z.strictObject({
   type: z.literal('run.finished'),
   ...stamp,
@@ -144,6 +156,7 @@ export const runEventSchema = z.discriminatedUnion('type', [
   toolEventSchema,
   usageEventSchema,
   noteEventSchema,
+  gateEventSchema,
   runFinishedSchema,
 ]);
 export type RunEvent = z.infer<typeof runEventSchema>;

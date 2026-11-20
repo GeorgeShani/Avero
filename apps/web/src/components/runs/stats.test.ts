@@ -1,8 +1,8 @@
-import type { RunSummary } from '@avero/contracts';
+import type { RunListItem } from '@avero/contracts';
 import { describe, expect, it } from 'vitest';
 import { overviewStats } from './stats';
 
-const run = (overrides: Partial<RunSummary>): RunSummary => ({
+const run = (overrides: Partial<RunListItem>): RunListItem => ({
   runId: 'r',
   task: 't',
   model: 'm',
@@ -15,6 +15,7 @@ const run = (overrides: Partial<RunSummary>): RunSummary => ({
   filesChanged: 1,
   additions: 10,
   deletions: 2,
+  review: {},
   ...overrides,
 });
 
@@ -31,6 +32,8 @@ describe('overviewStats', () => {
       deletions: 0,
       averageDurationMs: null,
       costCents: null,
+      awaitingDecision: 0,
+      awaitingRisky: 0,
     });
   });
 
@@ -60,5 +63,17 @@ describe('overviewStats', () => {
     ]);
     expect(stats.averageDurationMs).toBe(20_000);
     expect(stats.costCents).toBe(7);
+  });
+
+  it('counts finished runs nobody has decided on, and how many of them are risky', () => {
+    const stats = overviewStats([
+      run({ review: { risk: 'low' } }),
+      run({ review: { risk: 'high' } }),
+      run({ review: { risk: 'medium', decision: 'approved' } }),
+      run({}),
+      run({ status: 'ERROR', review: { risk: 'high' } }),
+    ]);
+    expect(stats.awaitingDecision).toBe(3);
+    expect(stats.awaitingRisky).toBe(1);
   });
 });

@@ -1,6 +1,6 @@
 # Avero: product plan
 
-Status: direction agreed 2026-11-19. It replaces the "SaaS orchestration dashboard" framing in `AVERO.md`. Phases 0 and 1 are done (2026-11-20): see [Progress](#progress).
+Status: direction agreed 2026-11-19. It replaces the "SaaS orchestration dashboard" framing in `AVERO.md`. Phases 0, 1 and most of 2 are done (2026-11-20): see [Progress](#progress).
 
 **Decisions recorded:** build the flight recorder and test bench _and_ the team orchestration platform, with the recorder and bench as the foundation; ship local-first _and_ hosted, over one shared run-record format; support Cursor only at first.
 
@@ -19,6 +19,24 @@ Status: direction agreed 2026-11-19. It replaces the "SaaS orchestration dashboa
 One real run (30 s, 49.6k tokens, 2 files, tests passing) was recorded on Cursor Pro and replayed.
 
 **Known gaps.** The Cursor sandbox is unsupported on this Windows machine, so recordings here use `--no-sandbox` in a throwaway folder; the CLI explains this when the sandbox is refused. `pnpm avero serve` works from this repository only; packaging the viewer for `npx` is Phase 4. The replay only animates in a visible window, so it was checked through the DOM and in earlier browser sessions, not on every change.
+
+**Phase 2, mostly done 2026-11-20.** Built and tested:
+
+- **Verdict.** `pnpm avero verdict <run-id>` has an independent reviewer agent (a fresh Cursor SDK agent with no tools but a `submit_verdict` tool) read the task, the author's own claim, the diff and the shell commands, and return a structured verdict: checks with evidence, files outside the task, whether tests ran, and a risk tier. Avero then checks it against the record and lists every correction: files that were not changed are removed, "tests ran" is dropped when no command ran, and risk is raised to a floor the record supports (dependency, workflow, env or migration files, a very large change, a failed check, files outside the task, or a run that did not finish). It is saved beside the record as `<run>.verdict.json`; the record itself never changes.
+- **Decisions.** A person approves, requests changes or rejects, from the run page or `pnpm avero decide`, with an optional note. Set `AVERO_READ_ONLY=1` to turn deciding off on a shared viewer. The runs list and the Overview show each run's risk and decision, and how many finished runs are still undecided.
+- **Gates.** `avero run` takes `--max-tokens` and `--max-seconds` (the run is cancelled and the record says why; time spent waiting for a person does not count), `--plan` (the agent plans without editing, you read its actual plan, and nothing changes unless you approve), `--approvals` (the agent gets a `request_approval` tool and is told to use it before risky actions), and `--verdict` (review right after the run). Every gate is a `gate` event in the run record and shows in the replay.
+- **Reviewer evals.** `pnpm avero eval-reviewer` runs the reviewer on four runs whose answer is known: a correct change, a fixed delay where exponential backoff was asked for, scope creep (a dependency and a tracking module), and an "all tests pass" claim with no test run. On 2026-11-20 it got 4 of 4 right. That is one run of a non-deterministic model, so treat it as a smoke test, not a score.
+
+Checked live on Cursor Pro: a real review of a good run (risk low, seven checks with evidence), a real review of a run cancelled by the time cap (the reviewer found the tests never ran, and Avero raised the risk from medium to high), a real plan-then-approve run, and a real time cap.
+
+**Phase 2 gaps and deviations.**
+
+- The reviewer runs on the Cursor SDK, not the Agent SDK: it needed only one structured tool, and the Agent SDK's trajectory evals are for agents deployed through it. The evals above are checks on the structured verdict instead.
+- Custom system prompts are not enabled on this Cursor account, so the reviewer's instructions are sent in the message.
+- `request_approval` is advice to the model: Avero cannot make an agent call a tool, so it records every request and answer but cannot guarantee a risky action went through it. Real enforcement needs the sandbox (unsupported on this Windows machine) or generated Cursor hooks, which are not built.
+- A run cancelled by a cap reports 0 tokens, because the SDK does not report usage for a cancelled turn.
+- The reviewer is a model and can be wrong. The page says so, and a person decides.
+- Starting a review from the run page (instead of the command) is not built, so the key stays out of the web server.
 
 ## 1. The problem with the current idea
 

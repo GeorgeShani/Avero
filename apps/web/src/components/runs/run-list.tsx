@@ -1,11 +1,12 @@
 'use client';
 
-import type { RunSummary } from '@avero/contracts';
+import type { ReviewState, RunListItem } from '@avero/contracts';
 import { Alert, Card, ItemList, TaskStatusBadge } from '@avero/ui';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { badgeState, formatMoney } from './replay';
 import './runs.css';
+import './verdict.css';
 
 function duration(ms: number): string {
   if (ms < 1000) return `${Math.round(ms)} ms`;
@@ -20,12 +21,24 @@ function startedAt(iso: string): string {
   return `${iso.slice(0, 10)} ${iso.slice(11, 16)}`;
 }
 
+const decisionLabels = {
+  approved: 'approved',
+  'changes-requested': 'changes requested',
+  rejected: 'rejected',
+} as const;
+
+/** The reviewer's risk and the person's decision, in words, so colour is never the only signal. */
+function reviewLabel(review: ReviewState): string {
+  const risk = review.risk ? `${review.risk} risk` : 'no review';
+  return review.decision ? `${risk} · ${decisionLabels[review.decision]}` : `${risk} · open`;
+}
+
 export function RunList({
   runs,
   problems,
   dir,
 }: {
-  runs: RunSummary[];
+  runs: RunListItem[];
   problems: { file: string; message: string }[];
   dir: string;
 }) {
@@ -76,6 +89,16 @@ export function RunList({
                   label: 'Task',
                   width: 'minmax(180px, 1fr)',
                   render: (row) => <span data-rp="cell-task">{row.task}</span>,
+                },
+                {
+                  key: 'review',
+                  label: 'Review',
+                  width: '170px',
+                  render: (row) => (
+                    <span data-rp="cell-review" data-risk={row.review.risk}>
+                      {reviewLabel(row.review)}
+                    </span>
+                  ),
                 },
                 {
                   key: 'time',

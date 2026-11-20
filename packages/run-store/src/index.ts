@@ -1,6 +1,15 @@
-import { appendFile, mkdir, readdir, readFile } from 'node:fs/promises';
+import { appendFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { parseRunRecord, summarizeRun, type RunRecord, type RunSummary } from '@avero/contracts';
+import {
+  decisionSchema,
+  parseRunRecord,
+  summarizeRun,
+  verdictSchema,
+  type Decision,
+  type RunListItem,
+  type RunRecord,
+  type Verdict,
+} from '@avero/contracts';
 
 const runIdPattern = /^[A-Za-z0-9_-]{1,128}$/;
 
@@ -33,8 +42,49 @@ export async function readRun(dir: string, runId: string): Promise<RunRecord> {
   return parseRunRecord(await readFile(fileFor(dir, runId), 'utf8'));
 }
 
+async function readOptional(path: string): Promise<string | undefined> {
+  try {
+    return await readFile(path, 'utf8');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
+    throw error;
+  }
+}
+
+/** The reviewer's verdict sits beside the run record, never inside it, so a record never changes. */
+export async function writeVerdict(dir: string, verdict: Verdict): Promise<string> {
+  fileFor(dir, verdict.runId);
+  const path = join(dir, `${verdict.runId}.verdict.json`);
+  await mkdir(dir, { recursive: true });
+  await writeFile(path, `${JSON.stringify(verdictSchema.parse(verdict), null, 2)}\n`, 'utf8');
+  return path;
+}
+
+export async function readVerdict(dir: string, runId: string): Promise<Verdict | undefined> {
+  fileFor(dir, runId);
+  const text = await readOptional(join(dir, `${runId}.verdict.json`));
+  return text === undefined ? undefined : verdictSchema.parse(JSON.parse(text));
+}
+
+/** A person's decision on a run. A new decision replaces the old one. */
+export async function writeDecision(dir: string, decision: Decision): Promise<string> {
+  fileFor(dir, decision.runId);
+  const path = join(dir, `${decision.runId}.decision.json`);
+  await mkdir(dir, { recursive: true });
+  await writeFile(path, `${JSON.stringify(decisionSchema.parse(decision), null, 2)}\n`, 'utf8');
+  return path;
+}
+
+export async function readDecision(dir: string, runId: string): Promise<Decision | undefined> {
+  fileFor(dir, runId);
+  const text = await readOptional(join(dir, `${runId}.decision.json`));
+  return text === undefined ? undefined : decisionSchema.parse(JSON.parse(text));
+}
+
+export type { RunListItem };
+
 export type RunListing = {
-  runs: RunSummary[];
+  runs: RunListItem[];
   /** Files that could not be read as run records, with the reason. */
   problems: { file: string; message: string }[];
 };
@@ -45,11 +95,27 @@ export async function listRuns(dir: string): Promise<RunListing> {
     if (error.code === 'ENOENT') return [] as string[];
     throw error;
   });
-  const runs: RunSummary[] = [];
+  const runs: RunListItem[] = [];
   const problems: RunListing['problems'] = [];
   for (const name of names.filter((entry) => entry.endsWith('.jsonl'))) {
     try {
-      runs.push(summarizeRun(parseRunRecord(await readFile(join(dir, name), 'utf8'))));
+      const summary = summarizeRun(parseRunRecord(await readFile(join(dir, name), 'utf8')));
+      const [verdict, decision] = await Promise.all([
+        readVerdict(dir, summary.runId),
+        readDecision(dir, summary.runId),
+      ]);
+      runs.push({
+        ...summary,
+        review: {
+          ...(verdict
+            ? {
+                risk: verdict.risk.tier,
+                failedChecks: verdict.checks.filter((check) => check.verdict === 'fail').length,
+              }
+            : {}),
+          ...(decision ? { decision: decision.decision } : {}),
+        },
+      });
     } catch (error) {
       problems.push({
         file: name,

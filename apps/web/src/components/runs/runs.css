@@ -354,7 +354,7 @@ html[data-skin-theme='dark'] [data-skin='hardware'] :is([data-rp='patch'], [data
 }
 
 [data-skin='hardware'] [data-rp='scroll'] > [data-kit='item-list'] {
-  min-width: 640px;
+  min-width: 900px;
 }
 
 [data-skin='hardware'] [data-stack] > *,

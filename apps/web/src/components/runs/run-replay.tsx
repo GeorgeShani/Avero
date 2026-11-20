@@ -2,7 +2,7 @@
 
 import type { RunRecord } from '@avero/contracts';
 import { Alert, Card, ItemList, TaskStatusBadge } from '@avero/ui';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { badgeState, formatMoney, runLength, splitPatch, tokensAt } from './replay';
 import { ReplayScope } from './replay-scope';
 import './runs.css';
@@ -11,7 +11,7 @@ function seconds(ms: number): string {
   return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`;
 }
 
-export function RunReplay({ record }: { record: RunRecord }) {
+export function RunReplay({ record, review }: { record: RunRecord; review?: ReactNode }) {
   const length = useMemo(() => runLength(record), [record]);
   const patches = useMemo(() => splitPatch(record.finished?.changes?.patch), [record]);
   const [file, setFile] = useState(record.finished?.changes?.files[0]?.path ?? '');
@@ -59,6 +59,8 @@ export function RunReplay({ record }: { record: RunRecord }) {
       </dl>
 
       <ReplayScope record={record} />
+
+      {review}
 
       <div data-columns>
         <Card title="Task">

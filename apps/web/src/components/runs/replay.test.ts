@@ -54,6 +54,7 @@ const events: RunEvent[] = [
   },
   { type: 'tool', seq: 6, t: 1500, callId: 'b', name: 'shell', status: 'error' },
   { type: 'usage', seq: 7, t: 1600, usage: usage(500) },
+  { type: 'gate', seq: 7, t: 1650, kind: 'limit', outcome: 'tripped', detail: 'Time cap reached' },
   {
     type: 'run.finished',
     seq: 8,
@@ -91,9 +92,15 @@ describe('buildFeed', () => {
       [400, 'tool'],
       [800, 'assistant'],
       [900, 'tool'],
+      [1650, 'gate'],
     ]);
     expect(feed[1]).toMatchObject({ title: 'read a.js', took: 300 });
     expect(feed[3]?.failed).toBe(true);
+    expect(feed[4]).toMatchObject({
+      title: 'limit tripped',
+      detail: 'Time cap reached',
+      failed: true,
+    });
   });
 });
 

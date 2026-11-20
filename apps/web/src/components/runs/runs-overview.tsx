@@ -1,4 +1,4 @@
-import type { RunSummary } from '@avero/contracts';
+import type { RunListItem } from '@avero/contracts';
 import { Lcd, LcdDigits } from '@avero/ui';
 import Link from 'next/link';
 import { RunList } from './run-list';
@@ -20,7 +20,7 @@ export function RunsOverview({
   problems,
   dir,
 }: {
-  runs: RunSummary[];
+  runs: RunListItem[];
   problems: { file: string; message: string }[];
   dir: string;
 }) {
@@ -37,6 +37,9 @@ export function RunsOverview({
         <Lcd tag="Failed" size="sm">
           <LcdDigits value={pad(stats.failed, 3)} ghost="888" />
         </Lcd>
+        <Lcd tag="To decide" size="sm">
+          <LcdDigits value={pad(stats.awaitingDecision, 3)} ghost="888" />
+        </Lcd>
         <Lcd tag="Tokens (k)" size="sm">
           <LcdDigits value={pad(Math.round(stats.totalTokens / 1000), 5)} ghost="88888" />
         </Lcd>
@@ -46,7 +49,9 @@ export function RunsOverview({
       </div>
       <p data-rp="dim">
         Average finished run: {seconds(stats.averageDurationMs)} · Billed cost:{' '}
-        {formatMoney(stats.costCents ?? undefined)} · {stats.filesChanged} files changed in total
+        {formatMoney(stats.costCents ?? undefined)} · {stats.filesChanged} files changed in total ·{' '}
+        {stats.awaitingRisky} of the {stats.awaitingDecision} runs awaiting a decision are medium or
+        high risk
       </p>
       <RunList runs={runs.slice(0, 5)} problems={problems} dir={dir} />
       {runs.length > 5 && (

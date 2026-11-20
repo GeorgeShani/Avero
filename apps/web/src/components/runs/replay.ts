@@ -64,7 +64,7 @@ export function buildLanes(record: RunRecord): Lane[] {
 export type FeedRow = {
   id: string;
   t: number;
-  kind: 'tool' | 'assistant' | 'thinking' | 'status' | 'note';
+  kind: 'tool' | 'assistant' | 'thinking' | 'status' | 'note' | 'gate';
   title: string;
   detail?: string;
   failed?: boolean;
@@ -102,6 +102,15 @@ export function buildFeed(record: RunRecord): FeedRow[] {
       rows.push({ id, t: event.t, kind: 'status', title: event.status.toLowerCase() });
     } else if (event.type === 'note') {
       rows.push({ id, t: event.t, kind: 'note', title: event.text });
+    } else if (event.type === 'gate') {
+      rows.push({
+        id,
+        t: event.t,
+        kind: 'gate',
+        title: `${event.kind} ${event.outcome}`,
+        ...(event.detail ? { detail: event.detail } : {}),
+        failed: event.outcome === 'denied' || event.outcome === 'tripped',
+      });
     }
   });
   return rows.sort((a, b) => a.t - b.t);

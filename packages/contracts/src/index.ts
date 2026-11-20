@@ -34,3 +34,4 @@ export const workspaceSchema = z.strictObject({
 export type Workspace = z.infer<typeof workspaceSchema>;
 
 export * from './run-record.ts';
+export * from './verdict.ts';
