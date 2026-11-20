@@ -1,0 +1,32 @@
+{
+  "name": "@avero/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "avero": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@avero/coding-engine": "workspace:*",
+    "@avero/contracts": "workspace:*",
+    "@avero/run-store": "workspace:*"
+  },
+  "nx": {
+    "tags": [
+      "scope:cli",
+      "type:app",
+      "runtime:node"
+    ],
+    "targets": {
+      "build": {
+        "outputs": [
+          "{projectRoot}/dist"
+        ]
+      }
+    }
+  }
+}

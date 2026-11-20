@@ -14,13 +14,14 @@ export function runCommand(executable, args, env = process.env) {
   }
 }
 
-export function runNx(args) {
+export function runNx(args, extraEnv = {}) {
   const require = createRequire(import.meta.url);
   const manifestPath = require.resolve('nx/package.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   const cli = resolve(dirname(manifestPath), manifest.bin.nx);
   runCommand(process.execPath, [cli, ...args], {
     ...process.env,
+    ...extraEnv,
     NX_DAEMON: process.env.NX_DAEMON ?? 'false',
     NX_ISOLATE_PLUGINS: process.env.NX_ISOLATE_PLUGINS ?? 'false',
   });

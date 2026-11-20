@@ -1195,17 +1195,17 @@ Avoid introducing paid infrastructure before it is necessary.
 
 - [x] Verify SDK packages.
 - [x] Install dependencies.
-- [ ] Authenticate.
-- [ ] Execute Cursor SDK prototype.
-- [ ] Stream execution events.
-- [ ] Execute Agent SDK prototype.
+- [x] Authenticate.
+- [x] Execute Cursor SDK prototype.
+- [x] Stream execution events.
+- [x] Execute Agent SDK prototype.
 - [x] Create custom tool.
-- [ ] Run evaluation.
+- [x] Run evaluation.
 - [x] Document compatibility.
 
 **Exit Criteria:** Both SDKs execute real tasks.
 
-**Status (2026-11-18):** not met. `pnpm verify:sdk` passes locally: SDK builds, agent project validation, eval discovery and the custom tool. The authenticated prototypes and the evaluation have never run against a live model and need Cursor credentials (`pnpm verify:sdk --live`). Boxes are checked only for what has been run.
+**Status (2026-11-20):** met. `pnpm verify:sdk --live` passes on a Cursor Pro account: both SDKs authenticate, the Cursor SDK smoke run completes a real read tool call and streams events, the Agent SDK smoke run and the live evaluation pass. A free Cursor plan is rejected with `plan_required` on every SDK call, local runs included, so the account must be on a paid plan.
 
 ## Milestone 1 — Nx Foundation
 

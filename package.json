@@ -14,6 +14,7 @@
     "check": "nx run-many -t lint typecheck test build",
     "verify:workspace": "node tools/scripts/verify-workspace.mjs",
     "verify:sdk": "node tools/scripts/verify-sdk.mjs",
+    "avero": "node tools/scripts/avero.mjs",
     "infra:up": "docker compose --project-directory . -f infra/docker-compose.yml up -d --wait --wait-timeout 90",
     "infra:down": "docker compose --project-directory . -f infra/docker-compose.yml down",
     "infra:verify": "node tools/scripts/verify-infra.mjs",

@@ -1,0 +1,363 @@
+/* Runs: the list and the replay. Scoped to the hardware skin and keyed on data-rp. */
+
+[data-skin='hardware'] [data-rp='title'] {
+  max-width: 28ch;
+  font-size: clamp(26px, 3.4vw, 38px);
+}
+
+[data-skin='hardware'] [data-rp='facts'] {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+[data-skin='hardware'] [data-rp='facts'] > div {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f6f6f2, #ecece7);
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    inset 0 1px 0 #fff;
+}
+
+[data-skin='hardware'] [data-rp='facts'] dt {
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+[data-skin='hardware'] [data-rp='facts'] dd {
+  margin: 6px 0 0;
+  font-size: 15px;
+  text-transform: none;
+}
+
+@media (max-width: 760px) {
+  [data-skin='hardware'] [data-rp='facts'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+[data-skin='hardware'] [data-rp='scope'] {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ecece8, var(--metal));
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    inset 0 1px 0 #fff;
+}
+
+[data-skin='hardware'] [data-rp='screen'] {
+  display: grid;
+  gap: 14px;
+  padding: 16px 18px;
+  color: #ecece6;
+  text-transform: none;
+}
+
+[data-skin='hardware'] [data-rp='wf'] {
+  position: relative;
+  display: grid;
+  gap: 8px;
+}
+
+[data-skin='hardware'] [data-rp='lane'] {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  color: #8e8e87;
+  font-size: 11px;
+}
+
+[data-skin='hardware'] [data-rp='track'] {
+  position: relative;
+  height: 18px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(90deg, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 5%);
+}
+
+[data-skin='hardware'] [data-rp='track'] i {
+  position: absolute;
+  inset-block: 2px;
+  border-radius: 2px;
+  background: var(--bar, #8e9aa6);
+  opacity: 0.22;
+  transition: opacity 180ms;
+}
+
+[data-skin='hardware'] [data-rp='track'] i[data-state='done'] {
+  opacity: 0.95;
+}
+
+[data-skin='hardware'] [data-rp='track'] i[data-state='live'] {
+  opacity: 1;
+  box-shadow: 0 0 10px color-mix(in oklab, var(--bar, #8e9aa6) 70%, transparent);
+}
+
+[data-skin='hardware'] [data-rp='track'] i[data-failed] {
+  background: #e0685a;
+}
+
+[data-skin='hardware'] [data-rp='lane'][data-kind='thinking'] {
+  --bar: #8e8e87;
+}
+[data-skin='hardware'] [data-rp='lane'][data-kind='read'] {
+  --bar: #9db4cf;
+}
+[data-skin='hardware'] [data-rp='lane'][data-kind='search'] {
+  --bar: #b7a4dc;
+}
+[data-skin='hardware'] [data-rp='lane'][data-kind='edit'] {
+  --bar: var(--key-glow);
+}
+[data-skin='hardware'] [data-rp='lane'][data-kind='shell'] {
+  --bar: #7fd6c3;
+}
+[data-skin='hardware'] [data-rp='lane'][data-kind='other'] {
+  --bar: #d6bd72;
+}
+
+[data-skin='hardware'] [data-rp='playhead'] {
+  position: absolute;
+  inset-block: -4px;
+  left: calc(96px + (100% - 96px) * var(--t-pct));
+  width: 2px;
+  background: #fff;
+  box-shadow: 0 0 10px rgb(255 255 255 / 0.7);
+  pointer-events: none;
+}
+
+[data-skin='hardware'] [data-rp='feed'] {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  max-height: 300px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 11px;
+  scrollbar-width: thin;
+}
+
+[data-skin='hardware'] [data-rp='feed'] li {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: baseline;
+  padding: 4px 0;
+  color: #b9b9b2;
+  animation: rp-line 260ms var(--ease-settle);
+}
+
+[data-skin='hardware'] [data-rp='feed'] li[data-kind='idle'] {
+  display: block;
+  color: #8e8e87;
+}
+
+[data-skin='hardware'] [data-rp='feed'] button {
+  all: unset;
+  color: #77776f;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-skin='hardware'] [data-rp='feed'] button:hover,
+[data-skin='hardware'] [data-rp='feed'] button:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+}
+
+[data-skin='hardware'] [data-rp='feed'] strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #fff;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-skin='hardware'] [data-rp='feed'] em {
+  color: #77776f;
+  font-style: normal;
+}
+
+[data-skin='hardware'] [data-rp='feed'] p {
+  grid-column: 2 / -1;
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #a2a29b;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+[data-skin='hardware'] [data-rp='feed'] li[data-kind='assistant'] strong {
+  color: var(--key-glow);
+}
+[data-skin='hardware'] [data-rp='feed'] li[data-kind='thinking'] strong {
+  color: #8e8e87;
+  font-weight: 400;
+}
+[data-skin='hardware'] [data-rp='feed'] li[data-failed] strong {
+  color: #ff8a7a;
+}
+
+@keyframes rp-line {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+
+[data-skin='hardware'] [data-rp='controls'] {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px 28px;
+}
+
+[data-skin='hardware'] [data-rp='readouts'] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+[data-skin='hardware'] [data-rp='transport'] {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+@media (max-width: 860px) {
+  [data-skin='hardware'] [data-rp='controls'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-skin='hardware'] [data-rp='transport'] {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  [data-skin='hardware'] [data-rp='lane'] {
+    grid-template-columns: 60px minmax(0, 1fr);
+  }
+
+  [data-skin='hardware'] [data-rp='playhead'] {
+    left: calc(72px + (100% - 72px) * var(--t-pct));
+  }
+}
+
+[data-skin='hardware'] [data-rp='prose'] {
+  margin: 0;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  text-transform: none;
+  white-space: pre-wrap;
+}
+
+[data-skin='hardware'] [data-rp='changes'] {
+  display: grid;
+  gap: 12px;
+}
+
+[data-skin='hardware'] [data-rp='patch'] {
+  max-height: 440px;
+  padding: 12px 0;
+  overflow: auto;
+  border-radius: 8px;
+  background: #151513;
+  color: #d6d6cf;
+  font-size: 11px;
+  line-height: 1.6;
+  text-transform: none;
+}
+
+[data-skin='hardware'] [data-rp='patch'] div {
+  padding: 0 14px;
+  white-space: pre;
+}
+
+[data-skin='hardware'] [data-rp='patch'] div[data-kind='add'] {
+  background: rgb(80 200 140 / 0.16);
+  color: #9be3bd;
+}
+[data-skin='hardware'] [data-rp='patch'] div[data-kind='del'] {
+  background: rgb(230 100 90 / 0.16);
+  color: #ffa397;
+}
+[data-skin='hardware'] [data-rp='patch'] div[data-kind='hunk'] {
+  color: #8ea3d6;
+}
+[data-skin='hardware'] [data-rp='patch'] div[data-kind='meta'] {
+  color: #77776f;
+}
+
+[data-skin='hardware'] [data-rp='cell-task'] {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-skin='hardware'] [data-rp='empty'] {
+  display: grid;
+  gap: 12px;
+  text-transform: none;
+}
+
+[data-skin='hardware'] [data-rp='empty'] p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+[data-skin='hardware'] [data-rp='command'] {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #151513;
+  color: #e8e8e2;
+  font-size: 12px;
+}
+
+[data-skin='hardware'] [data-rp='dim'] {
+  color: var(--dim);
+  font-size: 11px;
+}
+
+/* The patch and the replay screen are dark by design, so the dark theme inverts them back. */
+html[data-skin-theme='dark'] [data-skin='hardware'] :is([data-rp='patch'], [data-rp='command']) {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin='hardware'] [data-rp='feed'] li {
+    animation: none;
+  }
+
+  [data-skin='hardware'] [data-rp='track'] i {
+    transition: none;
+  }
+}
+
+/* A wide list scrolls sideways inside its card instead of squeezing the task column to nothing. */
+[data-skin='hardware'] [data-rp='scroll'] {
+  overflow-x: auto;
+}
+
+[data-skin='hardware'] [data-rp='scroll'] > [data-kit='item-list'] {
+  min-width: 640px;
+}
+
+[data-skin='hardware'] [data-stack] > *,
+[data-skin='hardware'] [data-kit='card-body'] {
+  min-width: 0;
+}

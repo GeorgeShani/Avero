@@ -49,16 +49,6 @@
   align-items: start;
 }
 
-[data-skin='hardware'] [data-columns='workspace'] {
-  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(280px, 380px);
-}
-
-@media (max-width: 1100px) {
-  [data-skin='hardware'] [data-columns='workspace'] {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 [data-skin='hardware'] [data-stack] {
   display: grid;
   gap: 14px;
@@ -71,105 +61,15 @@
   gap: 10px;
 }
 
-[data-skin='hardware'] [data-defs] {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 8px 16px;
-  margin: 0;
-}
-
-[data-skin='hardware'] [data-defs] dt {
-  color: var(--dim);
-}
-
-[data-skin='hardware'] [data-defs] dd {
-  margin: 0;
-  text-transform: none;
-}
-
-[data-skin='hardware'] [data-sim] {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1px var(--hair);
-  color: var(--dim);
-  letter-spacing: 0.08em;
-}
-
-[data-skin='hardware'] [data-sim]::before {
-  content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--key-lamp);
-  animation: avero-blink 1.6s ease-in-out infinite;
-}
-
-@keyframes avero-blink {
-  50% {
-    opacity: 0.3;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-skin='hardware'] [data-sim]::before {
-    animation: none;
-  }
-}
-
-[data-skin='hardware'] [data-log] {
-  display: grid;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 11px;
-  text-transform: none;
-}
-
-[data-skin='hardware'] [data-log] li {
-  display: grid;
-  grid-template-columns: 4.5ch 7ch 1fr;
-  gap: 8px;
-}
-
-[data-skin='hardware'] [data-log] li[data-kind='error'] {
-  color: #ff7a6a;
-}
-
-[data-skin='hardware'] [data-log] li[data-kind='approval'] {
-  color: #ffd166;
-}
-
 [data-skin='hardware'] [data-note] {
   color: var(--dim);
   font-size: 11px;
-}
-
-[data-skin='hardware'] [data-device-scroll] {
-  max-height: 28rem;
-  overflow: auto;
 }
 
 /* web.css gives a listbox a fixed width; the item list must fill its tray. */
 [data-skin='hardware'] [data-kit='item-list-body']:not(#_):not(#_):not(#_) {
   width: 100%;
   max-width: none;
-}
-
-[data-skin='hardware'] [data-overview] {
-  display: grid;
-  grid-template-columns: minmax(0, 640px) minmax(280px, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-@media (max-width: 1000px) {
-  [data-skin='hardware'] [data-overview] {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 /* The skin is drawn light. The dark theme (dark.css) inverts it, so keep light-dark() colors on their light side. */

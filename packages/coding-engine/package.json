@@ -17,6 +17,8 @@
     "cursor:smoke": "node dist/cli.js smoke"
   },
   "dependencies": {
+    "@avero/contracts": "workspace:*",
+    "@avero/security": "workspace:*",
     "@cursor/sdk": "1.4.0"
   },
   "nx": {

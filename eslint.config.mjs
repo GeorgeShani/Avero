@@ -62,7 +62,13 @@ export default defineConfig([
         'error',
         {
           ...boundaries,
-          allow: ['@avero/config', '@avero/db', '@avero/observability', '@avero/security'],
+          allow: [
+            '@avero/config',
+            '@avero/db',
+            '@avero/observability',
+            '@avero/run-store',
+            '@avero/security',
+          ],
         },
       ],
     },

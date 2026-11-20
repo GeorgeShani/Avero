@@ -28,7 +28,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       >
         <ThemeSwitch />
         <Link data-kit="button" data-tone="primary" data-mk="nav-cta" href="/overview">
-          Open demo
+          Open console
         </Link>
       </Navbar>
       <main data-kit="sheet" id="main" data-mk="page">
@@ -36,7 +36,10 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       </main>
       <footer data-mk="footer">
         <span>Avero · in development</span>
-        <span>Every demo on this page runs on example data, not on real agent runs.</span>
+        <span>
+          The replay and the record are real. Verdict and Bench show illustrative data until they
+          are built.
+        </span>
       </footer>
     </>
   );

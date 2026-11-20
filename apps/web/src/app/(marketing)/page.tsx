@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { AgentDesk } from '../../components/marketing/agent-desk';
 import { BenchDemo } from '../../components/marketing/bench-demo';
-import { HeroScope } from '../../components/marketing/hero-scope';
+import { exampleRecord, recordLinesFrom } from '../../components/marketing/example';
 import { RecorderStory } from '../../components/marketing/recorder-story';
 import { Reveal } from '../../components/marketing/reveal';
+import { ReplayScope } from '../../components/runs/replay-scope';
 import { Roadmap } from '../../components/marketing/roadmap';
 import { TypedLine } from '../../components/marketing/typed-line';
 import { VerdictDemo } from '../../components/marketing/verdict-demo';
@@ -11,15 +12,9 @@ import { VerdictDemo } from '../../components/marketing/verdict-demo';
 const headline = ['See', 'what', 'your', 'coding', 'agents', 'actually', 'did.'];
 
 const doors = [
-  { href: '/overview', title: 'Overview', body: 'Approvals, live runs and the activity feed' },
-  { href: '/tasks', title: 'Tasks', body: 'A board, a composer and a workspace per task' },
-  {
-    href: '/repositories',
-    title: 'Repositories',
-    body: 'What each repository allows agents to do',
-  },
-  { href: '/agents', title: 'Agents', body: 'The agents and the rules they run under' },
-  { href: '/evaluations', title: 'Evaluations', body: 'Compare setups on the same tasks' },
+  { href: '/overview', title: 'Overview', body: 'Totals across the runs recorded on this machine' },
+  { href: '/runs', title: 'Runs', body: 'Every recorded run, newest first' },
+  { href: '/settings', title: 'Settings', body: 'Interface preferences and workspaces' },
 ] as const;
 
 export default function MarketingPage() {
@@ -27,7 +22,8 @@ export default function MarketingPage() {
     <>
       <section data-mk="hero" aria-labelledby="hero-title">
         <p data-mk="status">
-          <span data-mk="lamp" data-live="" /> In development · the demos below use example data
+          <span data-mk="lamp" data-live="" /> In development · the replay below is a real recorded
+          run; Verdict and Bench are illustrative
         </p>
         <div data-mk="hero-top">
           <h1 id="hero-title" data-mk="headline">
@@ -44,7 +40,7 @@ export default function MarketingPage() {
             </p>
             <div data-mk="cta">
               <Link data-kit="button" data-tone="primary" href="/overview">
-                Try the console demo
+                Open the console
               </Link>
               <a data-kit="button" data-tone="secondary" href="#recorder">
                 How it works
@@ -56,10 +52,13 @@ export default function MarketingPage() {
             />
           </div>
         </div>
-        <HeroScope />
+        <ReplayScope
+          record={exampleRecord}
+          label={`Real recorded run · ${exampleRecord.started.model}`}
+        />
       </section>
 
-      <RecorderStory />
+      <RecorderStory lines={recordLinesFrom(exampleRecord)} />
 
       <section id="verdict" data-mk="section" aria-labelledby="verdict-title">
         <Reveal data-head="">
@@ -145,13 +144,14 @@ export default function MarketingPage() {
       <section data-mk="closing" aria-labelledby="closing-title">
         <div data-mk="closing-copy">
           <p data-mk="kicker">The console</p>
-          <h2 id="closing-title">The workspace is already running.</h2>
+          <h2 id="closing-title">Record a run, then replay it.</h2>
           <p data-mk="lede">
-            Drive simulated runs with the D-pad, approve them and open their workspaces. It is a
-            prototype of the interface, not a recording of real agents.
+            Record a run with the command line, then open it here: the timeline, the event feed, the
+            tokens and the diff, read from files on your machine. Nothing in the console is
+            simulated.
           </p>
           <Link data-kit="button" data-tone="primary" href="/overview">
-            Open the console demo
+            Open the console
           </Link>
         </div>
         <ul data-mk="doors" aria-label="Console screens">

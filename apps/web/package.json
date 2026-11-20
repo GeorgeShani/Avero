@@ -11,6 +11,7 @@
     "@avero/contracts": "workspace:*",
     "@avero/db": "workspace:*",
     "@avero/observability": "workspace:*",
+    "@avero/run-store": "workspace:*",
     "@avero/security": "workspace:*",
     "@avero/ui": "workspace:*",
     "@clerk/nextjs": "7.10.0",

@@ -2,8 +2,8 @@
 
 import { Display, Lcd, LcdDigits } from '@avero/ui';
 import { useRef } from 'react';
+import type { RecordLine } from './example';
 import { useReducedMotion, useScrollProgress } from './hooks';
-import { recordLines } from './run-data';
 
 const beats = [
   {
@@ -21,11 +21,11 @@ const beats = [
 ] as const;
 
 /** Scroll-driven: the record writes itself as you scroll through the section. */
-export function RecorderStory() {
+export function RecorderStory({ lines }: { lines: readonly RecordLine[] }) {
   const ref = useRef<HTMLElement>(null);
   const progress = useScrollProgress(ref);
   const reduced = useReducedMotion();
-  const total = recordLines.length;
+  const total = lines.length;
   const shown = reduced ? total : Math.min(total, Math.floor(progress * (total + 2)));
   const beat = reduced ? 0 : Math.min(beats.length - 1, Math.floor(progress * beats.length));
 
@@ -44,16 +44,16 @@ export function RecorderStory() {
             ))}
           </ol>
           <p data-mk="aside">
-            Planned: avero run wraps a Cursor SDK run and writes .avero/ in your repository. Example
-            records shown.
+            pnpm avero run wraps a Cursor SDK run and writes .avero/ in your repository. These lines
+            are from a real recorded run, shortened.
           </p>
         </div>
         <div data-mk="story-visual">
-          <Display label="run-4821.jsonl" aspect="auto">
-            <ol data-mk="jsonl" aria-label="Example run record">
-              {recordLines.slice(0, shown).map((line, index) => (
+          <Display label="A real run record · shortened" aspect="auto">
+            <ol data-mk="jsonl" aria-label="Lines from a recorded run">
+              {lines.slice(0, shown).map((line, index) => (
                 <li
-                  key={line.text}
+                  key={index}
                   data-type={line.type}
                   data-new={index === shown - 1 && !reduced ? '' : undefined}
                 >
@@ -70,7 +70,7 @@ export function RecorderStory() {
             </Lcd>
             <Lcd tag="Progress" size="sm">
               <LcdDigits
-                value={`${Math.round((shown / total) * 100)}%`.padStart(4, ' ')}
+                value={`${Math.round((shown / Math.max(total, 1)) * 100)}%`.padStart(4, ' ')}
                 ghost="888%"
               />
             </Lcd>

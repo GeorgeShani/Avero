@@ -1,4 +1,6 @@
+import { toolSpans } from '@avero/contracts';
 import type { AgentStep } from '@avero/ui';
+import { exampleRecord } from './example';
 import { cheapestEffort, efforts } from './run-data';
 
 /** One move of the scripted agent: say what it intends, find the control, call the action. */
@@ -25,6 +27,11 @@ const setValue = (ref: string, value: unknown): AgentStep => ({
 
 const best = cheapestEffort('Tuned');
 
+/** Where the real recording first runs a shell command, in milliseconds. */
+export const shellStartMs = Math.round(
+  toolSpans(exampleRecord).find((span) => span.kind === 'shell')?.start ?? 0,
+);
+
 /**
  * The scripted agent has no model. Each task is a fixed list of the calls a real agent would make
  * through the same three tools (snapshot, act and query).
@@ -32,17 +39,17 @@ const best = cheapestEffort('Tuned');
 export const tasks: readonly Task[] = [
   {
     id: 'replay',
-    label: 'Replay the failing step',
+    label: 'Replay the test run',
     stages: [
       {
-        say: 'Slow it down: set the replay speed to 2x.',
+        say: 'Speed the replay up to 16x.',
         focus: 'Speed',
-        steps: [setValue('Speed', '2x')],
+        steps: [setValue('Speed', '16x')],
       },
       {
-        say: 'Jump the playhead to the test run at 12.0 seconds.',
+        say: `Jump the playhead to the first shell command, at ${(shellStartMs / 1000).toFixed(1)} seconds.`,
         focus: 'Playhead',
-        steps: [setValue('Playhead', 12)],
+        steps: [setValue('Playhead', shellStartMs)],
         wait: 900,
       },
     ],

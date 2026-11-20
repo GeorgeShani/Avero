@@ -23,9 +23,6 @@ export function ConsoleNavbar() {
         onSelect: () => router.push(item.href),
       }))}
     >
-      <span data-sim title="Runs on this page are simulated. Nothing is executing.">
-        simulation
-      </span>
       <CommandPalette
         commands={commandTargets.map((target) => target.command)}
         onRun={(command) => {

@@ -32,3 +32,5 @@ export const workspaceSchema = z.strictObject({
   role: workspaceRoleSchema,
 });
 export type Workspace = z.infer<typeof workspaceSchema>;
+
+export * from './run-record.ts';

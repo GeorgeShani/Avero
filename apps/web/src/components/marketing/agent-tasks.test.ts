@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tasks } from './agent-tasks';
+import { shellStartMs, tasks } from './agent-tasks';
 import { cheapestEffort, efforts, perResolved } from './run-data';
 
 describe('scripted agent tasks', () => {
@@ -34,6 +34,16 @@ describe('scripted agent tasks', () => {
     const review = tasks.find((task) => task.id === 'review');
     const press = review?.stages.at(-1)?.steps.at(-1);
     expect(press).toMatchObject({ ref: 'Approve anyway', action: 'press' });
+  });
+});
+
+describe('the replay task', () => {
+  it('speeds up to a speed the replay offers and jumps to a time inside the recording', () => {
+    const replay = tasks.find((task) => task.id === 'replay');
+    const args = replay?.stages.flatMap((stage) => stage.steps.map((step) => step.args?.[0]));
+    expect(args).toContain('16x');
+    expect(shellStartMs).toBeGreaterThan(0);
+    expect(args).toContain(shellStartMs);
   });
 });
 

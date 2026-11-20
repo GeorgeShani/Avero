@@ -1,8 +1,24 @@
 # Avero: product plan
 
-Status: direction agreed 2026-11-19. Nothing here is built yet. It replaces the "SaaS orchestration dashboard" framing in `AVERO.md`.
+Status: direction agreed 2026-11-19. It replaces the "SaaS orchestration dashboard" framing in `AVERO.md`. Phases 0 and 1 are done (2026-11-20): see [Progress](#progress).
 
 **Decisions recorded:** build the flight recorder and test bench _and_ the team orchestration platform, with the recorder and bench as the foundation; ship local-first _and_ hosted, over one shared run-record format; support Cursor only at first.
+
+## Progress
+
+**Phase 0, done 2026-11-20.** `pnpm verify:sdk --live` passes on a Cursor Pro account. A free plan is rejected with `plan_required` on every SDK call, local runs included. Billed cost (`agent.getUsage()`) returns `feature_unavailable` for this account, so records carry token counts and show cost as "not reported" rather than an estimate.
+
+**Phase 1, done 2026-11-20** (one gap, below). Built and tested:
+
+- Run-record schema in `@avero/contracts` (JSONL, one event per line, strict Zod validation, helpers for tool spans and run summaries).
+- Recorder in `@avero/coding-engine`: wraps a local Cursor SDK run, merges the SDK's streamed text fragments, bounds large tool output, scrubs the API key and the workspace path, and records changed files and a patch from git (including files git does not track yet). A failed run is recorded too.
+- `@avero/run-store` (read, write, list; rejects run ids that could leave the folder) and the `avero` CLI: `pnpm avero run | list | show | serve`.
+- Console: `/overview` (totals and the latest runs), `/runs` and `/runs/[id]` (timeline, event feed, token counter, playhead and the diff), all read from run records. The simulation and its screens (Tasks, Repositories, Agents, Evaluations, Activity) are deleted.
+- The marketing page replays a real recorded run (`apps/web/src/content/example-run.ts`, exported with `tools/scripts/export-example-run.mjs`). Only the Verdict and Bench demos still use illustrative data, labelled as such, until those phases are built.
+
+One real run (30 s, 49.6k tokens, 2 files, tests passing) was recorded on Cursor Pro and replayed.
+
+**Known gaps.** The Cursor sandbox is unsupported on this Windows machine, so recordings here use `--no-sandbox` in a throwaway folder; the CLI explains this when the sandbox is refused. `pnpm avero serve` works from this repository only; packaging the viewer for `npx` is Phase 4. The replay only animates in a visible window, so it was checked through the DOM and in earlier browser sessions, not on every change.
 
 ## 1. The problem with the current idea
 

@@ -41,7 +41,7 @@ pnpm exec nx run @avero/agent-service:agent:smoke
 pnpm exec nx run @avero/agent-service:agent:eval
 ```
 
-The evaluation requires a successful model turn and tool call, with the expected verdict in the reply. Model turns and evals can consume Cursor usage. Both integrations type-checked against their installed SDKs. The Agent SDK CLI validated the project and discovered the smoke eval. The registered tool definition accepted valid input and returned the expected verdict when invoked directly. The authenticated prototypes and evaluation still need a connected run.
+The evaluation requires a successful model turn and tool call, with the expected verdict in the reply. Model turns and evals can consume Cursor usage. Both integrations type-checked against their installed SDKs. The Agent SDK CLI validated the project and discovered the smoke eval. The registered tool definition accepted valid input and returned the expected verdict when invoked directly. On 2026-11-20 `pnpm verify:sdk --live` passed on a Cursor Pro account: authentication, both smoke runs and the evaluation. The SDK rejects free-plan accounts with `plan_required` on every call, including local runs, so a paid plan is required.
 
 From the workspace root, run `pnpm verify:sdk` for the local checks. After configuring Cursor credentials, run `pnpm verify:sdk --live` to verify both authenticated tasks and the eval.
 
