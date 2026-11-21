@@ -73,4 +73,26 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // The console reads its data through the RunSource that server/run-source.ts returns, so the
+    // same pages can serve local files now and the database later. Nothing else in the web app
+    // reaches for the file store directly.
+    files: ['apps/web/src/**/*.{ts,tsx}'],
+    ignores: ['apps/web/src/server/run-source.ts', 'apps/web/src/**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          ...internalImports,
+          paths: [
+            {
+              name: '@avero/run-store',
+              message:
+                'Read runs through runSource() from server/run-source.ts, so the console works over files and the database alike.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);

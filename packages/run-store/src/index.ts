@@ -6,6 +6,7 @@ import {
   summarizeRun,
   verdictSchema,
   type Decision,
+  type RunListing,
   type RunListItem,
   type RunRecord,
   type Verdict,
@@ -81,13 +82,7 @@ export async function readDecision(dir: string, runId: string): Promise<Decision
   return text === undefined ? undefined : decisionSchema.parse(JSON.parse(text));
 }
 
-export type { RunListItem };
-
-export type RunListing = {
-  runs: RunListItem[];
-  /** Files that could not be read as run records, with the reason. */
-  problems: { file: string; message: string }[];
-};
+export type { RunListing, RunListItem };
 
 /** Every run in the folder, newest first. A broken file is reported, not hidden. */
 export async function listRuns(dir: string): Promise<RunListing> {
@@ -127,3 +122,4 @@ export async function listRuns(dir: string): Promise<RunListing> {
   return { runs, problems };
 }
 export * from './bench.ts';
+export { fileRunSource } from './source.ts';

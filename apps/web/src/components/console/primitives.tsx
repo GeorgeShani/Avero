@@ -201,20 +201,3 @@ export function ReviewTags({ review }: { review: ReviewState }) {
     </span>
   );
 }
-
-export function seconds(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)} ms`;
-  const s = ms / 1000;
-  return s < 60 ? `${s.toFixed(1)} s` : `${Math.floor(s / 60)} min ${Math.round(s % 60)} s`;
-}
-
-/** UTC in a fixed format, not the viewer's locale, so the server and the browser print the same text. */
-export function stamp(iso: string): string {
-  return `${iso.slice(0, 10)} ${iso.slice(11, 16)}`;
-}
-
-export function compact(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 10_000) return `${Math.round(value / 1000)}k`;
-  return value.toLocaleString('en-US');
-}

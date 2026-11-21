@@ -40,6 +40,18 @@ The control plane and the execution plane meet through authenticated APIs and th
 
 Libraries publish compiled output from `dist/` through a single entry point. Nx builds dependencies first for builds, type checks and tests.
 
+## The web app's layout
+
+`apps/web/src` is organised by what a thing is for, not by technology:
+
+- `app/(marketing)`: the landing page. `app/(auth)`: sign-in, sign-up and the workspace pages (Clerk). `app/(dashboard)`: the console (desk, runs, review, bench, settings). `app/api`: the HTTP API.
+- `features/<name>/`: the code of one feature, UI and logic together: `runs`, `review`, `bench`, `console-shell`, `marketing`.
+- `components/`: generic pieces shared across features. `hooks/` and `lib/`: shared hooks and plain helpers (theme, formatting). `server/`: everything that runs only on the server.
+
+### Where the console's data comes from
+
+Pages and server actions never read files or the database themselves. They call `runSource()` in `server/run-source.ts`, which returns a `RunSource` (an interface in `@avero/contracts`). Today that is `fileRunSource` from `@avero/run-store`, reading the `.avero` folder. `dbRunSource` in `@avero/db` implements the same interface over PostgreSQL, scoped to a workspace. Choosing it per request needs sign-in and a workspace picker in the dashboard, which is not built yet. A lint rule rejects any import of `@avero/run-store` in the web app outside `server/run-source.ts`, so the seam cannot leak.
+
 ## Dependency rules
 
 Rules live in [`eslint.config.mjs`](../eslint.config.mjs) and run with `nx lint`. Tags are declared in each package's `nx.tags`.

@@ -1,5 +1,5 @@
+import type { RunSource } from '@avero/contracts';
 import { checkDecision } from '@avero/security';
-import { isRunId, readRun, writeDecision } from '@avero/run-store';
 
 export type DecisionResult = { ok: true } | { ok: false; error: string };
 
@@ -9,23 +9,20 @@ export type DecisionResult = { ok: true } | { ok: false; error: string };
  */
 export async function recordDecision(
   input: { runId: string; decision: string; note: string },
-  deps: { dir: string; readOnly: boolean; now?: () => Date },
+  deps: { source: RunSource; readOnly: boolean; now?: () => Date },
 ): Promise<DecisionResult> {
   const checked = checkDecision(input, { readOnly: deps.readOnly });
   if (!checked.ok) return checked;
-  if (!isRunId(input.runId)) return { ok: false, error: 'That is not a valid run.' };
   const { decision, note } = checked;
 
   try {
-    await readRun(deps.dir, input.runId);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    if (!(await deps.source.getRun(input.runId)))
       return { ok: false, error: 'There is no such run.' };
-    }
+  } catch {
     return { ok: false, error: 'That run could not be read.' };
   }
 
-  await writeDecision(deps.dir, {
+  await deps.source.saveDecision({
     v: 1,
     runId: input.runId,
     decision,

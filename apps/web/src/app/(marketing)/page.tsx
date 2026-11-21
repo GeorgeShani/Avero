@@ -1,13 +1,13 @@
 import Link from 'next/link';
-import { AgentDesk } from '../../components/marketing/agent-desk';
-import { BenchDemo } from '../../components/marketing/bench-demo';
-import { exampleRecord, recordLinesFrom } from '../../components/marketing/example';
-import { RecorderStory } from '../../components/marketing/recorder-story';
-import { Reveal } from '../../components/marketing/reveal';
-import { ReplayScope } from '../../components/runs/replay-scope';
-import { Roadmap } from '../../components/marketing/roadmap';
-import { TypedLine } from '../../components/marketing/typed-line';
-import { VerdictDemo } from '../../components/marketing/verdict-demo';
+import { AgentDesk } from '../../features/marketing/agent-desk';
+import { BenchDemo } from '../../features/marketing/bench-demo';
+import { exampleRecord, recordLinesFrom } from '../../features/marketing/example';
+import { RecorderStory } from '../../features/marketing/recorder-story';
+import { Reveal } from '../../features/marketing/reveal';
+import { ReplayScope } from '../../features/marketing/replay-scope';
+import { Roadmap } from '../../features/marketing/roadmap';
+import { TypedLine } from '../../features/marketing/typed-line';
+import { VerdictDemo } from '../../features/marketing/verdict-demo';
 
 const headline = ['See', 'what', 'your', 'coding', 'agents', 'actually', 'did.'];
 

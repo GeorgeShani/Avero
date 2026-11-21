@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { readDecision } from '@avero/run-store';
+import { fileRunSource, readDecision } from '@avero/run-store';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { recordDecision } from './decisions';
 
@@ -28,7 +28,11 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-const deps = () => ({ dir, readOnly: false, now: () => new Date('2026-11-20T12:00:00Z') });
+const deps = () => ({
+  source: fileRunSource(dir),
+  readOnly: false,
+  now: () => new Date('2026-11-20T12:00:00Z'),
+});
 
 describe('recordDecision', () => {
   it('saves the decision with its note and time', async () => {

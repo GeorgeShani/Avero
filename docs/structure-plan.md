@@ -17,6 +17,22 @@ Written 2026-11-21. The target is the tree in `AVERO.md` section 3.2. This plan 
   - `ui`: `primitives/` (the vendored kit, renamed from `hardware/`), `styles/` and `components/`. The `@avero/ui/styles.css` export is unchanged.
 - **Left for later steps, on purpose:** `riskFloor` and the other policy code stay in `contracts/agents/verdict.ts`, because `contracts` cannot depend on `security`; moving it needs a decision about where shared policy lives. `github`, `observability/{tracing,metrics}` and the worker and agent-service folders wait for the code that needs them.
 
+**S2 and S3 done 2026-11-21**, with the deviations below. Checked with the full workspace check, including the database tests against a real PostgreSQL started with `pnpm infra:up`.
+
+- **S2.**
+  - Route groups renamed: `(platform)` to `(auth)`, `(console)` to `(dashboard)`. URLs are unchanged (route groups are not part of the URL).
+  - Added `features/` (`runs`, `review`, `bench`, `console-shell`, `marketing`), `hooks/` (`use-reduced-motion`, `use-theme-mode`) and `lib/format.ts`. Three copies of the reduced-motion hook and two sets of formatters became one each.
+  - The `RunSource` interface is in `@avero/contracts`; `fileRunSource` in `@avero/run-store` implements it; `server/run-source.ts` is the only place the web app chooses one. A lint rule rejects any other import of `@avero/run-store` in the web app (proved with a deliberate bad import). The decision action now takes a `RunSource` too.
+  - Every console route was requested on a production build and answered 200 (404 for a missing run).
+  - **Deviation:** the workspace pages stay in `(auth)` at `/workspaces`, not under `settings/workspaces`. They use the Clerk provider and the hardware skin; moving them means restyling them and putting the dashboard behind sign-in, which belongs with the cloud mode. **Deviation:** instead of one test per page, the seam is proved by the `fileRunSource` tests and the lint rule, because pages are server components that cannot be unit-tested without a framework harness we do not have.
+- **S3.**
+  - Migration `0001_runs_and_bench`: `runs` (summary columns plus the whole record), `verdicts`, `run_decisions`, `bench_suites`, `bench_results`, `hillclimbs`, all per workspace and deleted with it. Applied to the local Postgres; migration `0000` was applied from its new `src/migrations` path first.
+  - `saveRun`, `saveBenchSuite`, `saveBenchResult`, `saveHillclimb` and `dbRunSource` in `@avero/db`. Records are validated before they are written and when they are read; a push of the same run replaces it.
+  - 8 integration tests against the real database: newest-first listing with review state, **a workspace never sees another's runs**, replace on re-push, invalid input refused and nothing stored, decisions saved and replaced, **a decision in another workspace refused**, bench suites and results per workspace, and cascade delete. They run when `AVERO_TEST_DATABASE_URL` is set; CI now starts a Postgres service and sets it.
+  - `canPushRuns` and `canDecideRuns` in `@avero/security`. `POST /api/v1/workspaces/{id}/runs` with the rules in `server/run-push.ts` (404 for a non-member, 403 for a viewer, 400 for bad input), covered by unit tests with injected storage.
+  - **Not done, on purpose:** the `repositories`, `tasks` and `task_events` tables. Nothing reads them until the worker (S4) and GitHub (S5) exist, and an unused table is the empty scaffolding this plan rules out. **Not done:** the dashboard does not read the database yet (it needs sign-in, which needs Clerk keys, and a workspace picker); the CLI cannot push yet (no API tokens); the push route was tested with fakes, not through a signed-in Clerk session, because Clerk is not configured in this environment.
+  - Also found and fixed: the bench suite page showed results oldest first (it reversed a list that was already newest first).
+
 ## 1. Rules for getting there
 
 1. **No empty scaffolding.** A folder or file is created in the same change as the code that needs it, with a test. The target's own note says not to create configuration just to match the diagram, and this project has already paid for fake screens once (the simulated Tasks, Repositories, Agents, Evaluations and Activity pages were deleted). A folder that exists only to look finished is the same mistake.
