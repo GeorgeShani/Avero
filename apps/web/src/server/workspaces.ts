@@ -8,6 +8,7 @@ import {
   postgresUrlSchema,
   readWorkspace,
   renameWorkspace,
+  saveRun,
 } from '@avero/db';
 import type { AveroDatabase } from '@avero/db';
 import { writeLog } from '@avero/observability';
@@ -79,4 +80,20 @@ async function perform<T>(failureEvent: string, operation: () => Promise<T>): Pr
     writeLog('error', failureEvent);
     throw new Error('Workspace operation failed.');
   }
+}
+
+/** Saves a pushed run in a workspace the caller has already been checked against. */
+export async function storeRun(
+  workspaceId: string,
+  data: { record: string; verdict?: unknown; decision?: unknown },
+  userId: string,
+) {
+  return perform('run.push_failed', async () => {
+    const saved = await saveRun(database(), workspaceId, {
+      ...data,
+      pushedBy: { clerkUserId: userId },
+    });
+    writeLog('info', 'run.pushed', { workspaceId, created: saved.created ? 1 : 0 });
+    return saved;
+  });
 }
