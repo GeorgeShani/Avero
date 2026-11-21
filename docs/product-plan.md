@@ -14,7 +14,7 @@ Status: direction agreed 2026-11-19. It replaces the "SaaS orchestration dashboa
 - Recorder in `@avero/coding-engine`: wraps a local Cursor SDK run, merges the SDK's streamed text fragments, bounds large tool output, scrubs the API key and the workspace path, and records changed files and a patch from git (including files git does not track yet). A failed run is recorded too.
 - `@avero/run-store` (read, write, list; rejects run ids that could leave the folder) and the `avero` CLI: `pnpm avero run | list | show | serve`.
 - Console: `/overview` (totals and the latest runs), `/runs` and `/runs/[id]` (timeline, event feed, token counter, playhead and the diff), all read from run records. The simulation and its screens (Tasks, Repositories, Agents, Evaluations, Activity) are deleted.
-- The marketing page replays a real recorded run (`apps/web/src/content/example-run.ts`, exported with `tools/scripts/export-example-run.mjs`). Only the Verdict and Bench demos still use illustrative data, labelled as such, until those phases are built.
+- The marketing page replays a real recorded run (`apps/web/src/content/example-run.ts`, exported with `tools/scripts/export-example-run.mjs`). The Verdict and Bench demos now show real data too (see the Phase 4 notes).
 
 One real run (30 s, 49.6k tokens, 2 files, tests passing) was recorded on Cursor Pro and replayed.
 
@@ -153,7 +153,7 @@ Run live on Cursor Pro against a small demo repository (`tools/scripts/make-demo
 - **npx packaging.** `pnpm build:npm` bundles the CLI, bench, share and MCP into `dist-npm/avero` (about 290 kB packed) with `@cursor/sdk` as the one dependency. The tarball installed into a clean folder and ran `--help`, `list`, `export`, `serve` (the replay page worked in the browser) and `bench show`. **Nothing is published.** The name `avero` was free on npm when checked (2026-11-20).
 - README quick start, MIT `LICENSE`, and the demo repository script.
 
-**Phase 4 gaps.** Not published to npm; the license holder in `LICENSE` is "Avero contributors", change it if you want a name. The Cursor SDK terms for redistributing a tool that uses the user's own key are still unchecked (section 8). No recorded demo video and no public read-only viewer seeded with runs. `avero serve` cannot record decisions (use `avero decide` or the Next.js console). The marketing page's Bench demo still shows illustrative data. The 60-second quick start has been run in pieces (record, serve, export on this machine), not by a stranger on a fresh machine, and `npx avero` has not been tried against the registry because nothing is published.
+**Phase 4 gaps.** Not published to npm; the license holder in `LICENSE` is "Avero contributors", change it if you want a name. The Cursor SDK terms for redistributing a tool that uses the user's own key are still unchecked (section 8). No recorded demo video and no public read-only viewer seeded with runs. `avero serve` cannot record decisions (use `avero decide` or the Next.js console). The marketing page's Verdict and Bench demos use real data exported with `tools/scripts/export-example-review.mjs` (two real reviews and one four-attempt bench result), not live files; rerun the script to refresh them. The 60-second quick start has been run in pieces (record, serve, export on this machine), not by a stranger on a fresh machine, and `npx avero` has not been tried against the registry because nothing is published.
 
 ## 6. Roadmap
 

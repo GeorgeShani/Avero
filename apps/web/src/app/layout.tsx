@@ -1,9 +1,7 @@
 import '@fontsource-variable/hanken-grotesk';
 import '@fontsource-variable/red-hat-mono';
-import { Hardware, Toasts } from '@avero/ui';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { NavOffset } from '../components/nav-offset';
 import { themeBootScript } from '../lib/theme-boot';
 import './globals.css';
 
@@ -12,24 +10,16 @@ export const metadata: Metadata = {
   description: 'Your engineering workflow, intelligently orchestrated.',
 };
 
-// Mineral green, as OKLCH lightness, chroma and hue.
-const mineral = { l: 0.5, c: 0.1, h: 163 };
-
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  // UI SDK keys its own palette on data-theme. It stays "light" because the dark theme is the
-  // light skin inverted (data-skin-theme, set by the boot script).
+  // UI SDK keys its own palette on data-theme. It stays "light" because the marketing skin's dark
+  // theme is the light skin inverted (data-skin-theme, set by the boot script). The console reads
+  // the same data-skin-theme attribute for its own light and dark tokens.
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
-      <body>
-        <Hardware data-site keyColor={mineral}>
-          <NavOffset />
-          {children}
-          <Toasts />
-        </Hardware>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

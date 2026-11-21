@@ -1,15 +1,12 @@
 'use client';
 
 import { checkCounts, type Decision, type Verdict } from '@avero/contracts';
-import { Alert, Button, Card, Textarea } from '@avero/ui';
 import { useState, useTransition } from 'react';
 import { decideRun } from '../../app/(console)/runs/[id]/actions';
-import './runs.css';
-import './verdict.css';
+import { Note, RiskTag, stamp } from './primitives';
 
 const marks = { pass: '✓', fail: '✕', unclear: '?' } as const;
 const words = { pass: 'Pass', fail: 'Fails', unclear: 'Unclear' } as const;
-const tierMarks = { low: '●', medium: '▲', high: '◆' } as const;
 
 const decisionWords: Record<Decision['decision'], string> = {
   approved: 'Approved',
@@ -17,30 +14,22 @@ const decisionWords: Record<Decision['decision'], string> = {
   rejected: 'Rejected',
 };
 
-function when(iso: string): string {
-  return `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`;
-}
-
 function VerdictBody({ verdict }: { verdict: Verdict }) {
   const counts = checkCounts(verdict);
   return (
-    <div data-vd="body">
-      <div data-vd="head">
-        <span data-vd="tier" data-tier={verdict.risk.tier}>
-          <span aria-hidden="true">{tierMarks[verdict.risk.tier]}</span> {verdict.risk.tier} risk
-        </span>
-        <span data-vd="counts">
+    <>
+      <div data-review-summary>
+        <RiskTag tier={verdict.risk.tier} />
+        <span data-mono>
           {counts.pass} pass · {counts.fail} fail · {counts.unclear} unclear
         </span>
-        <span data-vd="when">reviewed {when(verdict.reviewer.reviewedAt)}</span>
       </div>
+      <p>{verdict.summary}</p>
 
-      <p data-vd="summary">{verdict.summary}</p>
-
-      <ul data-vd="checks" aria-label="Checks against the task">
+      <ul data-checks aria-label="Checks against the task">
         {verdict.checks.map((check) => (
           <li key={check.id} data-verdict={check.verdict}>
-            <span data-vd="mark" aria-hidden="true">
+            <span data-mark aria-hidden="true">
               {marks[check.verdict]}
             </span>
             <span>
@@ -48,21 +37,14 @@ function VerdictBody({ verdict }: { verdict: Verdict }) {
               <em>
                 {words[check.verdict]}: {check.evidence}
               </em>
-              {check.files && check.files.length > 0 && (
-                <span data-vd="files">
-                  {check.files.map((file) => (
-                    <code key={file}>{file}</code>
-                  ))}
-                </span>
-              )}
             </span>
           </li>
         ))}
       </ul>
 
-      <div data-vd="facts">
-        <section aria-labelledby="vd-tests">
-          <h4 id="vd-tests">Tests</h4>
+      <div data-facts>
+        <section>
+          <h3>Tests</h3>
           <p>
             {verdict.tests.ran
               ? verdict.tests.passed
@@ -72,8 +54,8 @@ function VerdictBody({ verdict }: { verdict: Verdict }) {
             {verdict.tests.evidence}
           </p>
         </section>
-        <section aria-labelledby="vd-scope">
-          <h4 id="vd-scope">Outside the task</h4>
+        <section>
+          <h3>Outside the task</h3>
           {verdict.outOfScope.length === 0 ? (
             <p>Nothing outside what the task asked for.</p>
           ) : (
@@ -86,8 +68,8 @@ function VerdictBody({ verdict }: { verdict: Verdict }) {
             </ul>
           )}
         </section>
-        <section aria-labelledby="vd-risk">
-          <h4 id="vd-risk">Why this risk</h4>
+        <section>
+          <h3>Why this risk</h3>
           {verdict.risk.reasons.length === 0 ? (
             <p>No reasons given.</p>
           ) : (
@@ -101,7 +83,7 @@ function VerdictBody({ verdict }: { verdict: Verdict }) {
       </div>
 
       {verdict.adjustments.length > 0 && (
-        <details data-vd="adjustments">
+        <details data-adjust>
           <summary>Avero corrected the reviewer on {verdict.adjustments.length} point(s)</summary>
           <ul>
             {verdict.adjustments.map((line) => (
@@ -110,12 +92,12 @@ function VerdictBody({ verdict }: { verdict: Verdict }) {
           </ul>
         </details>
       )}
-    </div>
+    </>
   );
 }
 
-/** The reviewer's verdict, and the person's decision on it. */
-export function VerdictPanel({
+/** The reviewer's verdict beside the replay, and the person's decision on it. */
+export function ReviewPanel({
   runId,
   verdict,
   decision,
@@ -140,57 +122,83 @@ export function VerdictPanel({
   };
 
   return (
-    <Card
-      title="Verdict"
-      description={
-        verdict
-          ? `Written by ${verdict.reviewer.model}, an AI reviewer. Avero checked it against the record. You decide.`
-          : 'No review has been written for this run yet.'
-      }
-    >
-      <div data-stack>
+    <section data-panel data-review>
+      <div data-panel-head>
+        <div>
+          <h2>Review</h2>
+          <p>
+            {verdict
+              ? `By ${verdict.reviewer.model}, an AI reviewer · ${stamp(verdict.reviewer.reviewedAt)} UTC`
+              : 'No review written yet'}
+          </p>
+        </div>
+      </div>
+      <div data-panel-body>
         {verdict ? (
           <VerdictBody verdict={verdict} />
         ) : (
-          <div data-vd="empty">
+          <div data-empty style={{ padding: 0 }}>
             <p>
               An independent agent reads the task, the diff and the commands, and checks them
               against each other.
             </p>
-            <pre data-rp="command">{`pnpm avero verdict ${runId}`}</pre>
+            <pre data-cmd>{`pnpm avero verdict ${runId}`}</pre>
           </div>
         )}
+        {verdict ? (
+          <p data-faint style={{ fontSize: 12, marginTop: 12 }}>
+            The reviewer is a model and can be wrong. Avero checked it against the record. You
+            decide.
+          </p>
+        ) : null}
 
-        <fieldset data-vd="decide" disabled={readOnly || pending}>
+        <fieldset data-decide disabled={readOnly || pending}>
           <legend>Your decision</legend>
           {decision && (
-            <p data-vd="decided" data-decision={decision.decision} role="status">
-              <strong>{decisionWords[decision.decision]}</strong> · {when(decision.decidedAt)}
-              {decision.note ? ` · “${decision.note}”` : ''}
+            <p role="status">
+              <span data-tag data-tone={decision.decision === 'approved' ? 'ok' : 'bad'}>
+                {decisionWords[decision.decision]}
+              </span>{' '}
+              <span data-dim data-mono style={{ fontSize: 12 }}>
+                {stamp(decision.decidedAt)} UTC
+              </span>
+              {decision.note ? <span data-dim> · “{decision.note}”</span> : null}
             </p>
           )}
-          <Textarea
-            label="Note (optional)"
+          <textarea
+            data-field
+            aria-label="Note (optional)"
+            placeholder="Note (optional)"
             value={note}
-            onValueChange={(value: string) => setNote(value)}
             maxLength={2000}
             rows={2}
+            onChange={(event) => setNote(event.target.value)}
           />
-          <div data-vd="buttons">
-            <Button onClick={() => choose('rejected')}>Reject</Button>
-            <Button onClick={() => choose('changes-requested')}>Request changes</Button>
-            <Button tone="primary" onClick={() => choose('approved')}>
+          <div data-decide-buttons>
+            <button type="button" data-btn data-danger onClick={() => choose('rejected')}>
+              Reject
+            </button>
+            <button type="button" data-btn onClick={() => choose('changes-requested')}>
+              Request changes
+            </button>
+            <button type="button" data-btn data-primary onClick={() => choose('approved')}>
               {failing ? 'Approve anyway' : 'Approve'}
-            </Button>
+            </button>
           </div>
-          {readOnly && <p data-vd="dim">This viewer is read-only, so decisions are turned off.</p>}
+          {readOnly && (
+            <p data-dim style={{ fontSize: 12 }}>
+              This viewer is read-only, so decisions are turned off.
+            </p>
+          )}
         </fieldset>
         {error && (
-          <Alert tone="danger" title="The decision was not saved">
-            {error}
-          </Alert>
+          <div style={{ marginTop: 12 }}>
+            <Note tone="bad" title="The decision was not saved.">
+              {error}
+            </Note>
+          </div>
         )}
       </div>
-    </Card>
+    </section>
   );
 }

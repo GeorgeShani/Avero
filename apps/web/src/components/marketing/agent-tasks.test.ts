@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { shellStartMs, tasks } from './agent-tasks';
-import { cheapestEffort, efforts, perResolved } from './run-data';
+import { cheapestSetup, setups } from './bench-data';
 
 describe('scripted agent tasks', () => {
   it('gives every task at least one stage, and every stage a named target and an action', () => {
@@ -18,16 +18,16 @@ describe('scripted agent tasks', () => {
     }
   });
 
-  it('ends the bench task on the setup with the lowest cost per resolved task', () => {
+  it('ends the bench task on the setup with the fewest tokens per resolved task', () => {
     const bench = tasks.find((task) => task.id === 'bench');
     const last = bench?.stages.at(-1)?.steps.at(-1);
-    expect(last?.args?.[0]).toBe(cheapestEffort('Tuned'));
+    expect(last?.args?.[0]).toBe(cheapestSetup()?.label);
   });
 
-  it('tries every effort level before settling', () => {
+  it('looks at every setup before settling', () => {
     const bench = tasks.find((task) => task.id === 'bench');
     const tried = bench?.stages.flatMap((stage) => stage.steps.map((step) => step.args?.[0]));
-    for (const effort of efforts) expect(tried).toContain(effort);
+    for (const setup of setups) expect(tried).toContain(setup.label);
   });
 
   it('aims at a control the agent is not allowed to press on its own', () => {
@@ -44,20 +44,5 @@ describe('the replay task', () => {
     expect(args).toContain('16x');
     expect(shellStartMs).toBeGreaterThan(0);
     expect(args).toContain(shellStartMs);
-  });
-});
-
-describe('cost per resolved task', () => {
-  it('divides the cost by the share of tasks resolved', () => {
-    expect(perResolved('Baseline', 'low')).toBeCloseTo(0.38 / 0.52, 5);
-  });
-
-  it('picks the lowest of the four efforts', () => {
-    for (const rules of ['Baseline', 'Tuned'] as const) {
-      const best = cheapestEffort(rules);
-      for (const effort of efforts) {
-        expect(perResolved(rules, best)).toBeLessThanOrEqual(perResolved(rules, effort));
-      }
-    }
   });
 });

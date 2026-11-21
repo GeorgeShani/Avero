@@ -1,7 +1,6 @@
 import { configMetrics, type BenchResult, type BenchSuite } from '@avero/contracts';
-import { Card } from '@avero/ui';
 import Link from 'next/link';
-import './bench.css';
+import { Panel } from '../console/primitives';
 import { cost, percent, seconds, tokens } from './format';
 
 const outcomeMark = { resolved: '✓', unresolved: '✕', error: '!' } as const;
@@ -23,56 +22,75 @@ export function BenchResultView({ suite, result }: { suite: BenchSuite; result: 
 
   return (
     <div data-stack>
-      <Card
+      <Panel
         title="Which setup resolves tasks cheapest"
-        description={`${tasks.length} task(s), ${result.repeats} repeat(s). Failed attempts are counted in what a resolved task cost.`}
+        hint={`${tasks.length} task(s), ${result.repeats} repeat(s). Failed attempts are counted in what a resolved task cost.`}
+        flush
       >
-        <div data-bn="scroll">
-          <table data-bn="table">
+        <div data-scroll>
+          <table data-table>
             <thead>
               <tr>
                 <th scope="col">Setup</th>
-                <th scope="col">Resolved</th>
-                <th scope="col">Pass rate (95% range)</th>
-                <th scope="col">Tokens per resolved</th>
-                <th scope="col">Time per resolved</th>
-                <th scope="col">Cost per resolved</th>
+                <th scope="col" data-num>
+                  Resolved
+                </th>
+                <th scope="col">Pass rate</th>
+                <th scope="col" data-num>
+                  Tokens / resolved
+                </th>
+                <th scope="col" data-num>
+                  Time / resolved
+                </th>
+                <th scope="col" data-num>
+                  Cost / resolved
+                </th>
               </tr>
             </thead>
             <tbody>
               {rows.map(({ config, metrics }) => (
                 <tr key={config.id}>
                   <th scope="row">{config.label}</th>
-                  <td>
+                  <td data-num>
                     {metrics.resolved}/{metrics.attempts}
                   </td>
-                  <td>
-                    {percent(metrics.passRate)}{' '}
-                    <span data-bn="dim">
-                      ({percent(metrics.passRateInterval.low)}–
-                      {percent(metrics.passRateInterval.high)})
+                  <td style={{ minWidth: 200 }}>
+                    <div data-setup style={{ gridTemplateColumns: 'minmax(0,1fr) auto' }}>
+                      <span
+                        data-bar
+                        role="img"
+                        aria-label={`${percent(metrics.passRate)} resolved`}
+                      >
+                        <i style={{ width: `${metrics.passRate * 100}%` }} />
+                      </span>
+                      <span data-mono>{percent(metrics.passRate)}</span>
+                    </div>
+                    <span data-faint style={{ fontSize: 12 }}>
+                      95% range {percent(metrics.passRateInterval.low)}–
+                      {percent(metrics.passRateInterval.high)}
                     </span>
                   </td>
-                  <td>{tokens(metrics.tokensPerResolved)}</td>
-                  <td>{seconds(metrics.secondsPerResolved)}</td>
-                  <td>{cost(metrics.costPerResolvedCents, metrics.costSource)}</td>
+                  <td data-num>{tokens(metrics.tokensPerResolved)}</td>
+                  <td data-num>{seconds(metrics.secondsPerResolved)}</td>
+                  <td data-num>{cost(metrics.costPerResolvedCents, metrics.costSource)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p data-bn="caveat">
+        <p data-faint style={{ fontSize: 12, padding: '12px 16px' }}>
           Each setup has only {attempts} attempt(s), so a gap smaller than its range is not a
           result. Cost is shown only when Cursor reports it for your account.
         </p>
-      </Card>
+      </Panel>
 
-      <Card
+      <Panel
         title="By task"
-        description="Each mark opens the recorded run: its replay and the reviewer's verdict."
+        hint="Each mark opens the recorded run: its replay and the reviewer's verdict."
+        flush
       >
-        <div data-bn="scroll">
-          <table data-bn="table">
+        <div data-scroll>
+          <table data-table>
             <thead>
               <tr>
                 <th scope="col">Task</th>
@@ -94,20 +112,20 @@ export function BenchResultView({ suite, result }: { suite: BenchSuite; result: 
                         .map((cell) => {
                           const mark = (
                             <span
-                              data-bn="mark"
+                              data-mark-box
                               data-outcome={cell.outcome}
                               title={outcomeWord[cell.outcome]}
                             >
                               {outcomeMark[cell.outcome]}
-                              <span data-bn="sr">{outcomeWord[cell.outcome]}</span>
+                              <span data-sr>{outcomeWord[cell.outcome]}</span>
                             </span>
                           );
                           return cell.runId ? (
-                            <Link key={cell.repeat} href={`/runs/${cell.runId}`} data-bn="cell">
+                            <Link key={cell.repeat} href={`/runs/${cell.runId}`} data-cell>
                               {mark}
                             </Link>
                           ) : (
-                            <span key={cell.repeat} data-bn="cell">
+                            <span key={cell.repeat} data-cell>
                               {mark}
                             </span>
                           );
@@ -119,7 +137,7 @@ export function BenchResultView({ suite, result }: { suite: BenchSuite; result: 
             </tbody>
           </table>
         </div>
-      </Card>
+      </Panel>
     </div>
   );
 }

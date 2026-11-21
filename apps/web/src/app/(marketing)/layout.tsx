@@ -1,12 +1,13 @@
 import { Lockup, Navbar } from '@avero/ui';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { SiteFrame } from '../../components/site-frame';
 import { ThemeSwitch } from '../../components/theme-switch';
 import './marketing.css';
 
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <SiteFrame>
       <Navbar
         leading={
           <Link
@@ -37,10 +38,10 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       <footer data-mk="footer">
         <span>Avero · in development</span>
         <span>
-          The replay and the record are real. Verdict and Bench show illustrative data until they
-          are built.
+          The replay, the verdict and the bench result are real recordings. The bench result is only
+          four attempts: it shows the pipeline works, not which setup is better.
         </span>
       </footer>
-    </>
+    </SiteFrame>
   );
 }

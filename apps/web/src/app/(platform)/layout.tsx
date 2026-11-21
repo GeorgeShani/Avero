@@ -2,6 +2,7 @@ import { Alert, Lockup, Navbar } from '@avero/ui';
 import { ClerkProvider } from '@clerk/nextjs';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { SiteFrame } from '../../components/site-frame';
 import { ThemeSwitch } from '../../components/theme-switch';
 import { clerkSettings } from '../../server/workspaces';
 
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 function Frame({ children }: { children: ReactNode }) {
   return (
-    <>
+    <SiteFrame>
       <Navbar
         leading={
           <Link
@@ -33,7 +34,7 @@ function Frame({ children }: { children: ReactNode }) {
           {children}
         </div>
       </main>
-    </>
+    </SiteFrame>
   );
 }
 

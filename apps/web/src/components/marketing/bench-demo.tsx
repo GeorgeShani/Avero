@@ -1,79 +1,77 @@
 'use client';
 
-import { Lcd, LcdDigits, ModeDial, Segmented } from '@avero/ui';
+import { Lcd, LcdDigits, Segmented } from '@avero/ui';
 import { useState } from 'react';
+import { cheapestSetup, setups } from './bench-data';
 import { useTween } from './hooks';
-import {
-  benchData,
-  cheapestEffort,
-  efforts,
-  perResolved,
-  type Effort,
-  type Rules,
-} from './run-data';
 
-/** Pick a setup; the chart, the pass rate and the cost per resolved task follow. */
+const marks = { resolved: '✓', unresolved: '✕', error: '!' } as const;
+const words = { resolved: 'resolved', unresolved: 'not resolved', error: 'could not be judged' };
+
+/** A real bench result: two tasks from a demo repository's history, two setups, one repeat. */
 export function BenchDemo() {
-  const [effort, setEffort] = useState<Effort>('medium');
-  const [rules, setRules] = useState<Rules>('Baseline');
-
-  const maxValue = Math.max(
-    ...efforts.flatMap((e) => (['Baseline', 'Tuned'] as const).map((r) => perResolved(r, e))),
-  );
-  const pass = useTween(benchData[rules][effort].pass);
-  const cost = useTween(perResolved(rules, effort));
-  const best = cheapestEffort(rules);
+  const [chosen, setChosen] = useState(setups[0]?.label ?? '');
+  const row = setups.find((setup) => setup.label === chosen) ?? setups[0];
+  const best = cheapestSetup();
+  const maxTokens = Math.max(...setups.map((setup) => setup.tokensPerResolved ?? 0), 1);
+  const tokens = useTween((row?.tokensPerResolved ?? 0) / 1000);
+  if (!row) return null;
 
   return (
     <div data-mk="bench">
       <div data-mk="bench-controls">
-        <ModeDial
-          label="Effort"
-          options={efforts.map((value) => ({ value, label: value }))}
-          value={effort}
-          onValueChange={(value) => setEffort(value as Effort)}
-        />
         <Segmented
-          label="Rules"
-          options={['Baseline', 'Tuned']}
-          defaultValue="Baseline"
-          onValueChange={(value) => setRules(value as Rules)}
+          label="Setup"
+          options={setups.map((setup) => setup.label)}
+          defaultValue={chosen}
+          onValueChange={setChosen}
         />
         <div data-mk="readouts" data-stack>
           <Lcd tag="Resolved" size="sm">
-            <LcdDigits value={`${Math.round(pass)}%`.padStart(4, ' ')} ghost="888%" />
+            <LcdDigits value={`${row.resolved}/${row.attempts}`} ghost="8/8" />
           </Lcd>
-          <Lcd tag="$ per task" size="sm">
-            <LcdDigits value={cost.toFixed(2)} ghost="8.88" />
+          <Lcd tag="k tokens per resolved" size="sm">
+            <LcdDigits value={tokens.toFixed(1).padStart(5, ' ')} ghost="888.8" />
           </Lcd>
         </div>
+        <ul data-mk="chips" aria-label={`Outcome of each task with ${row.label.toLowerCase()}`}>
+          {row.tasks.map((task) => (
+            <li key={task.title}>
+              <span aria-hidden="true">{marks[task.outcome]}</span> {task.title}
+              <span className="sr-only"> {words[task.outcome]}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <figure data-mk="chart">
         <div
           data-mk="bars"
           role="img"
-          aria-label={`Cost per resolved task for ${rules} rules by effort`}
+          aria-label="Tokens spent per resolved task, by setup, failed attempts included"
         >
-          {efforts.map((value) => {
-            const v = perResolved(rules, value);
-            return (
-              <div
-                key={value}
-                data-mk="bar-col"
-                data-on={value === effort ? '' : undefined}
-                data-best={value === best ? '' : undefined}
-              >
-                <span data-mk="bar-value">${v.toFixed(2)}</span>
-                <i style={{ ['--v' as string]: v / maxValue }} />
-                <span data-mk="bar-label">{value}</span>
-              </div>
-            );
-          })}
+          {setups.map((setup) => (
+            <div
+              key={setup.id}
+              data-mk="bar-col"
+              data-on={setup.label === row.label ? '' : undefined}
+              data-best={best?.id === setup.id ? '' : undefined}
+            >
+              <span data-mk="bar-value">
+                {setup.tokensPerResolved === null
+                  ? 'n/a'
+                  : `${(setup.tokensPerResolved / 1000).toFixed(1)}k`}
+              </span>
+              <i style={{ ['--v' as string]: (setup.tokensPerResolved ?? 0) / maxTokens }} />
+              <span data-mk="bar-label">{setup.label}</span>
+            </div>
+          ))}
         </div>
         <figcaption>
-          Cost per resolved task by effort. Lowest here: <strong>{best}</strong>. Example data:
-          Bench is not built yet.
+          Real result, recorded on a Cursor Pro account: 2 tasks from a small demo repository, 2
+          setups, 1 repeat, so 4 attempts. It shows the pipeline works. It does not show which setup
+          is better: the two are within 2% of each other, and a few attempts cannot tell them apart.
+          Cost in dollars is not shown because Cursor does not report it for this account.
         </figcaption>
       </figure>
     </div>

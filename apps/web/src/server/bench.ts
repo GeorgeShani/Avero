@@ -49,3 +49,18 @@ export async function loadResult(
   const hillclimb = await readHillclimb(dir, suiteId, id);
   return hillclimb ? { suite, hillclimb } : undefined;
 }
+
+/** The most recent bench result across all suites, with its suite. */
+export async function loadLatestBench(): Promise<
+  { suite: BenchSuite; result: BenchResult } | undefined
+> {
+  const dir = root();
+  const suites = await listSuites(dir);
+  let latest: { suite: BenchSuite; result: BenchResult } | undefined;
+  for (const suite of suites) {
+    for (const result of await listBenchResults(dir, suite.id)) {
+      if (!latest || result.startedAt > latest.result.startedAt) latest = { suite, result };
+    }
+  }
+  return latest;
+}

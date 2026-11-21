@@ -1,22 +1,32 @@
 import { describe, expect, it } from 'vitest';
-import { benchData } from './run-data';
+import { cheapestSetup, setups } from './bench-data';
+import { phases } from './run-data';
 
-describe('example bench data', () => {
-  it('has a pass rate and a cost for every effort under both rule sets', () => {
-    for (const rules of ['Baseline', 'Tuned'] as const) {
-      for (const effort of ['low', 'medium', 'high', 'max'] as const) {
-        const { pass, cost } = benchData[rules][effort];
-        expect(pass).toBeGreaterThan(0);
-        expect(pass).toBeLessThanOrEqual(100);
-        expect(cost).toBeGreaterThan(0);
-      }
+describe('the bench example', () => {
+  it('has the two setups of the real result, each with two attempts', () => {
+    expect(setups.map((setup) => setup.label)).toEqual(['No rules file', 'With rules file']);
+    for (const setup of setups) expect(setup.attempts).toBe(2);
+  });
+
+  it('picks the setup that spent the fewest tokens per resolved task', () => {
+    const best = cheapestSetup();
+    for (const setup of setups) {
+      expect(best?.tokensPerResolved ?? Infinity).toBeLessThanOrEqual(
+        setup.tokensPerResolved ?? Infinity,
+      );
     }
   });
 
-  it('shows the tuned rules resolving at least as many tasks for no more money', () => {
-    for (const effort of ['low', 'medium', 'high', 'max'] as const) {
-      expect(benchData.Tuned[effort].pass).toBeGreaterThanOrEqual(benchData.Baseline[effort].pass);
-      expect(benchData.Tuned[effort].cost).toBeLessThanOrEqual(benchData.Baseline[effort].cost);
-    }
+  it('has no cheapest setup when nothing was resolved', () => {
+    expect(
+      cheapestSetup(setups.map((setup) => ({ ...setup, tokensPerResolved: null }))),
+    ).toBeNull();
+  });
+});
+
+describe('the roadmap', () => {
+  it('lists the six phases in order, with a state each', () => {
+    expect(phases.map((phase) => phase.id)).toEqual(['0', '1', '2', '3', '4', '5']);
+    for (const phase of phases) expect(phase.state).not.toBe('');
   });
 });

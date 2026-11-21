@@ -1,7 +1,7 @@
 import { toolSpans } from '@avero/contracts';
 import type { AgentStep } from '@avero/ui';
 import { exampleRecord } from './example';
-import { cheapestEffort, efforts } from './run-data';
+import { cheapestSetup, setups } from './bench-data';
 
 /** One move of the scripted agent: say what it intends, find the control, call the action. */
 export type Stage = {
@@ -25,7 +25,7 @@ const setValue = (ref: string, value: unknown): AgentStep => ({
   args: [value],
 });
 
-const best = cheapestEffort('Tuned');
+const best = cheapestSetup()?.label ?? setups[0]?.label ?? '';
 
 /** Where the real recording first runs a shell command, in milliseconds. */
 export const shellStartMs = Math.round(
@@ -59,13 +59,19 @@ export const tasks: readonly Task[] = [
     label: 'Run the reviewer',
     stages: [
       {
+        say: 'Pick the run that was cut off at a time cap.',
+        focus: 'Run',
+        steps: [setValue('Run', 'Cancelled run')],
+        wait: 400,
+      },
+      {
         say: 'Switch the independent reviewer on and let it finish.',
         focus: 'Independent reviewer',
         steps: [setValue('Independent reviewer', 'On')],
         wait: 3900,
       },
       {
-        say: 'One check failed. Try to approve the change anyway.',
+        say: 'A check failed. Try to approve the change anyway.',
         focus: 'Approve anyway',
         steps: [{ ref: 'Approve anyway', action: 'press' }],
       },
@@ -75,22 +81,16 @@ export const tasks: readonly Task[] = [
     id: 'bench',
     label: 'Find the cheapest setup',
     stages: [
-      {
-        say: 'Use the tuned rules.',
-        focus: 'Rules',
-        steps: [setValue('Rules', 'Tuned')],
-        wait: 600,
-      },
-      ...efforts.map((effort): Stage => ({
-        say: `Try effort ${effort}.`,
-        focus: 'Effort',
-        steps: [setValue('Effort', effort)],
-        wait: 700,
+      ...setups.map((setup): Stage => ({
+        say: `Look at the setup with ${setup.label.toLowerCase()}.`,
+        focus: 'Setup',
+        steps: [setValue('Setup', setup.label)],
+        wait: 800,
       })),
       {
-        say: `Lowest cost per resolved task is ${best}. Settle there.`,
-        focus: 'Effort',
-        steps: [setValue('Effort', best)],
+        say: `${best} spent the fewest tokens per resolved task, though the gap is too small to trust. Settle there.`,
+        focus: 'Setup',
+        steps: [setValue('Setup', best)],
         wait: 800,
       },
     ],

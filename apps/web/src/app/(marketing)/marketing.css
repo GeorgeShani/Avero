@@ -479,7 +479,7 @@
   animation: mk-stamp 420ms var(--ease-detent) both;
 }
 
-[data-skin='hardware'] [data-mk='stamp'][data-decision='sent-back'] {
+[data-skin='hardware'] [data-mk='stamp'][data-decision='rejected'] {
   color: #b7791f;
 }
 
@@ -612,6 +612,100 @@
     0 8px 14px -8px rgb(0 0 0 / 0.3);
 }
 
+/* What Avero can export, and the three-command start --------------------------------------- */
+
+[data-skin='hardware'] [data-mk='ship'] {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-skin='hardware'] [data-mk='ship'] li {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 20px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f6f6f2, #ecece7);
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    inset 0 1px 0 #fff;
+}
+
+[data-skin='hardware'] [data-mk='ship'] h3 {
+  margin: 0;
+  font-family: 'Hanken Grotesk Variable', 'Hanken Grotesk', system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  text-transform: none;
+}
+
+[data-skin='hardware'] [data-mk='ship'] p {
+  margin: 0;
+  color: #55554f;
+  font-size: 12px;
+  line-height: 1.65;
+  text-transform: none;
+}
+
+[data-skin='hardware'] [data-mk='ship'] code,
+[data-skin='hardware'] [data-mk='start'] code {
+  display: block;
+  padding: 10px 12px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #0d0d0c;
+  color: #e8e8e2;
+  font-size: 12px;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+[data-skin='hardware'] [data-mk='ship'] code {
+  align-self: end;
+}
+
+[data-skin='hardware'] [data-mk='start'] {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-skin='hardware'] [data-mk='start'] li {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+[data-skin='hardware'] [data-mk='start'] strong {
+  font-weight: 500;
+  text-transform: none;
+}
+
+@media (max-width: 1000px) {
+  [data-skin='hardware'] [data-mk='ship'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  [data-skin='hardware'] [data-mk='ship'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-skin='hardware'] [data-mk='start'] li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+}
+
 /* Roadmap ------------------------------------------------------------------------------------ */
 
 [data-skin='hardware'] [data-mk='roadmap'] {
@@ -701,6 +795,7 @@
 }
 
 [data-skin='hardware'] [data-mk='phase-state'][data-state='In progress'],
+[data-skin='hardware'] [data-mk='phase-state'][data-state='Built'],
 [data-skin='hardware'] [data-mk='phase-state'][data-state='Done'] {
   color: var(--key-ink);
   box-shadow: inset 0 0 0 1px var(--key-color);
@@ -1163,7 +1258,10 @@
 }
 
 /* Dark theme: the typed command is already dark, so it is inverted back (see dark.css). */
-html[data-skin-theme='dark'] [data-skin='hardware'] [data-mk='typed'] code {
+html[data-skin-theme='dark']
+  [data-skin='hardware']
+  :is([data-mk='typed'], [data-mk='ship'], [data-mk='start'])
+  code {
   filter: invert(1) hue-rotate(180deg);
 }
 
