@@ -15,6 +15,27 @@
       "when": 1795243376285,
       "tag": "0001_runs_and_bench",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795244349906,
+      "tag": "0002_tasks_and_outbox",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795245929450,
+      "tag": "0003_github",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795246588889,
+      "tag": "0004_agents",
+      "breakpoints": true
     }
   ]
 }

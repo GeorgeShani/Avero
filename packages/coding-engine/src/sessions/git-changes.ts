@@ -10,8 +10,18 @@ const run = promisify(execFile);
 const emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
 const maxPatchChars = 200_000;
 
-/** Avero's own records live in .avero/, so they are never counted as the agent's changes. */
-const notAvero = ['--', '.', ':(exclude).avero'];
+/**
+ * Avero's own records live in .avero/, and a command guard it installs lives in .cursor/hooks.json
+ * and .cursor/hooks/, so none of them is counted as the agent's changes.
+ */
+const notAvero = [
+  '--',
+  '.',
+  ':(exclude).avero',
+  ':(exclude).cursor/hooks.json',
+  ':(exclude).cursor/hooks',
+  ':(exclude).cursor/rules/avero-agent.mdc',
+];
 const maxCountedFileBytes = 1_000_000;
 
 async function git(cwd: string, args: string[]): Promise<string> {

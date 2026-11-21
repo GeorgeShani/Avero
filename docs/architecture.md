@@ -4,39 +4,39 @@ Avero is split into a control plane and an execution plane. This page records wh
 
 ## Layers
 
-| Layer           | Responsibility                                                                    | Status                                                                                                                                       |
-| --------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Control plane   | Authentication, workspaces, repository access, tasks, approvals, audit, dashboard | Workspaces and membership-based access exist. The local console (runs, review, bench) reads files. Tasks, repositories and sync are planned. |
-| Execution plane | Cursor SDK coding sessions, Agent SDK workflows, tool execution, evaluations      | Recording, review and bench run against the live Cursor SDK on a Pro account. The Agent SDK has a prototype and one eval.                    |
-| Worker          | Background jobs, retries, recovery, outbox                                        | A process with a health endpoint only. BullMQ queues and job processing are planned (S4 in [structure-plan.md](structure-plan.md)).          |
+| Layer           | Responsibility                                                                    | Status                                                                                                                                                                                                                 |
+| --------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Control plane   | Authentication, workspaces, repository access, tasks, approvals, audit, dashboard | Workspaces and membership-based access, tasks, repositories, agent definitions and the GitHub App integration exist. The local console (runs, review, evaluations) reads files; there is no run sync from the CLI yet. |
+| Execution plane | Cursor SDK coding sessions, Agent SDK workflows, tool execution, evaluations      | Recording, review and bench run against the live Cursor SDK on a Pro account. The Agent SDK has a prototype and one eval.                                                                                              |
+| Worker          | Background jobs, retries, recovery, outbox                                        | Transactional outbox relay, BullMQ queue, task processing, cancellation and crash recovery (`apps/worker/src`), with a health endpoint.                                                                                |
 
 The control plane and the execution plane meet through authenticated APIs and the worker. The two SDK runtimes do not share session state and are not coupled to each other.
 
 ## Applications
 
-| Project                | Role                                                                                                                                  | Depends on (workspace)                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `@avero/web`           | Next.js app: marketing page, the console (desk, runs, review, bench, settings), workspace pages, `/api/v1/workspaces`, `/api/healthz` | `config`, `contracts`, `db`, `observability`, `run-store`, `security`, `ui` |
-| `@avero/cli`           | The `avero` command: run, list, show, verdict, decide, bench, export, trace, serve, mcp                                               | `bench`, `coding-engine`, `contracts`, `mcp`, `run-store`, `share`          |
-| `@avero/worker`        | Node.js process with `/healthz`                                                                                                       | `config`, `contracts`, `observability`                                      |
-| `@avero/agent-service` | Agent SDK project (`bot/`, `evals/`) with the `assess_change` tool and a smoke evaluation                                             | `contracts`                                                                 |
+| Project                | Role                                                                                                                                                                                                                                    | Depends on (workspace)                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `@avero/web`           | Next.js app: marketing page, the console (desk, tasks, runs, review, evaluations, activity, repositories, agents, settings), workspace pages, `/api/v1/workspaces` (with tasks, repositories, agents), `/api/v1/github`, `/api/healthz` | `config`, `contracts`, `db`, `github`, `observability`, `run-store`, `security`, `ui`        |
+| `@avero/cli`           | The `avero` command: run, list, show, verdict, decide, bench, export, trace, serve, mcp                                                                                                                                                 | `bench`, `coding-engine`, `contracts`, `mcp`, `run-store`, `share`                           |
+| `@avero/worker`        | Runs tasks: outbox relay, queue, processor, recovery, `/healthz`                                                                                                                                                                        | `bench`, `coding-engine`, `config`, `contracts`, `db`, `github`, `observability`, `security` |
+| `@avero/agent-service` | Agent SDK project (`bot/`, `evals/`): four review tools, four skills, two subagents, two hooks, an MCP connection to Avero's runs, and a smoke evaluation                                                                               | `contracts`                                                                                  |
 
 ## Shared packages
 
-| Package                | Owns                                                                          |
-| ---------------------- | ----------------------------------------------------------------------------- |
-| `@avero/contracts`     | Zod schemas and types shared across processes                                 |
-| `@avero/config`        | Typed environment parsing (worker port, Clerk settings)                       |
-| `@avero/db`            | Drizzle schema, migrations, workspace queries                                 |
-| `@avero/security`      | Workspace edit permission and secret redaction                                |
-| `@avero/observability` | Structured JSON logging                                                       |
-| `@avero/coding-engine` | The recorder, run limits, the reviewer agent and its evals, on the Cursor SDK |
-| `@avero/run-store`     | Reading and writing run records, verdicts, decisions and bench files          |
-| `@avero/bench`         | Task suites from git history, the matrix runner, hillclimb                    |
-| `@avero/share`         | One-file HTML replay, secret redaction for export, Agent Trace, local viewer  |
-| `@avero/mcp`           | The read-only MCP server over recorded runs                                   |
-| `@avero/github`        | Repository slug validation (GitHub App integration is Milestone 4)            |
-| `@avero/ui`            | Shared interface components and tokens                                        |
+| Package                | Owns                                                                                                   |
+| ---------------------- | ------------------------------------------------------------------------------------------------------ |
+| `@avero/contracts`     | Zod schemas and types shared across processes                                                          |
+| `@avero/config`        | Typed environment parsing (worker, Clerk, GitHub App, repository roots)                                |
+| `@avero/db`            | Drizzle schema, migrations, and the queries for workspaces, runs, tasks, the outbox, agents and GitHub |
+| `@avero/security`      | Permissions (workspaces, runs, tasks, agents), folder-root checks and secret redaction                 |
+| `@avero/observability` | Structured JSON logging                                                                                |
+| `@avero/coding-engine` | The recorder, run limits, the reviewer agent and its evals, on the Cursor SDK                          |
+| `@avero/run-store`     | Reading and writing run records, verdicts, decisions and bench files                                   |
+| `@avero/bench`         | Task suites from git history, the matrix runner, hillclimb                                             |
+| `@avero/share`         | One-file HTML replay, secret redaction for export, Agent Trace, local viewer                           |
+| `@avero/mcp`           | The read-only MCP server over recorded runs                                                            |
+| `@avero/github`        | GitHub App: webhook signature, installation state, REST client, pull request comments                  |
+| `@avero/ui`            | Shared interface components and tokens                                                                 |
 
 Libraries publish compiled output from `dist/` through a single entry point. Nx builds dependencies first for builds, type checks and tests.
 
@@ -44,8 +44,8 @@ Libraries publish compiled output from `dist/` through a single entry point. Nx 
 
 `apps/web/src` is organised by what a thing is for, not by technology:
 
-- `app/(marketing)`: the landing page. `app/(auth)`: sign-in, sign-up and the workspace pages (Clerk). `app/(dashboard)`: the console (desk, runs, review, bench, settings). `app/api`: the HTTP API.
-- `features/<name>/`: the code of one feature, UI and logic together: `runs`, `review`, `bench`, `console-shell`, `marketing`.
+- `app/(marketing)`: the landing page. `app/(auth)`: sign-in, sign-up and the workspace pages (Clerk). `app/(dashboard)`: the console (desk, tasks, runs, review, evaluations, activity, repositories, agents, settings). `app/api`: the HTTP API.
+- `features/<name>/`: the code of one feature, UI and logic together: `runs`, `review`, `bench`, `tasks`, `repositories`, `agents`, `activity`, `console-shell`, `marketing`.
 - `components/`: generic pieces shared across features. `hooks/` and `lib/`: shared hooks and plain helpers (theme, formatting). `server/`: everything that runs only on the server.
 
 ### Where the console's data comes from
@@ -65,8 +65,8 @@ Rules live in [`eslint.config.mjs`](../eslint.config.mjs) and run with `nx lint`
 
 ## Data
 
-Run data is files, not rows: run records, verdicts, decisions and bench results are written under `.avero/` in the repository they came from, and read through `@avero/run-store`. PostgreSQL holds users, workspaces and workspace members today, with Drizzle migrations in `packages/db/src/migrations` (see [database.md](database.md)). Authorization is enforced in the query: reads are filtered by membership and renames require an owner or admin role in the same statement. Redis is provisioned for local development and used from Milestone 3 onward.
+Run data is files, not rows: run records, verdicts, decisions and bench results are written under `.avero/` in the repository they came from, and read through `@avero/run-store`. PostgreSQL holds users, workspaces and workspace members today, with Drizzle migrations in `packages/db/src/migrations` (see [database.md](database.md)). Authorization is enforced in the query: reads are filtered by membership and renames require an owner or admin role in the same statement. Redis holds the task queue (BullMQ). The database is the source of truth: a task is saved with an outbox row in one transaction, and the worker publishes the row to the queue, so a crash between the two loses nothing.
 
 ## Not built yet
 
-Task API, BullMQ jobs, transactional outbox, event persistence and SSE, GitHub App, specialized agents, a database-backed run source, OpenTelemetry, deployment. See [structure-plan.md](structure-plan.md) and the milestones in [`AVERO.md`](../AVERO.md). Related pages: [database](database.md), [security](security.md), [api](api.md). `deployment.md` is written with the release work.
+A dashboard that reads runs from the database (the console still reads files), CLI run sync, OpenTelemetry, deployment. See [structure-plan.md](structure-plan.md) and the milestones in [`AVERO.md`](../AVERO.md). Related pages: [database](database.md), [security](security.md), [api](api.md). `deployment.md` is written with the release work.

@@ -1,2 +1,10 @@
 export { defaultAppUrl, defaultWorkerPort } from './constants.ts';
-export { readClerkEnvironment, readWorkerPort } from './environment.ts';
+export {
+  readClerkEnvironment,
+  readGithubSettings,
+  readRepositoryRoots,
+  readWorkerPort,
+  readWorkerRuntime,
+  type GithubSettings,
+  type WorkerRuntime,
+} from './environment.ts';

@@ -127,7 +127,7 @@ export default async function DeskPage() {
         </Panel>
 
         <Panel
-          title="Bench"
+          title="Evaluations"
           hint={
             bench
               ? `${bench.suite.id} · ${stamp(bench.result.startedAt)}`
@@ -135,8 +135,8 @@ export default async function DeskPage() {
           }
           action={
             bench
-              ? { href: `/bench/${bench.suite.id}/${bench.result.id}`, label: 'Open result' }
-              : { href: '/bench', label: 'Bench' }
+              ? { href: `/evaluations/${bench.suite.id}/${bench.result.id}`, label: 'Open result' }
+              : { href: '/evaluations', label: 'Evaluations' }
           }
         >
           {bench ? (

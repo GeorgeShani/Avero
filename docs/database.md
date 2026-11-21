@@ -53,6 +53,24 @@ pnpm exec nx test @avero/db
 
 CI starts a Postgres service, applies the migrations and sets the variable. Each test creates its own workspaces with random identities and deletes them afterwards.
 
-## Not built yet
+**Tasks** (migration `0002_tasks_and_outbox`). Everything belongs to a workspace and is deleted with it.
 
-Repositories, tasks and task events (S4 and S5 in [structure-plan.md](structure-plan.md)). The dashboard does not read these tables yet: the console still reads files, through the same `RunSource` interface the database implements.
+| Table          | Holds                                                                                                                                                                                                                                                 |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `repositories` | Where a task can run: a `local` folder on the worker's machine (`path`, never sent to a browser) or a `github` repository (`github_full_name`, linked to an installation). Names are unique per workspace; so are GitHub repositories.                |
+| `tasks`        | A job for an agent: prompt, model, optional `review`, limits, `status`, `attempt`, the `run_id` it produced, the error if it failed, and `source` (the pull request that started it, if one did). Statuses are the lifecycle in `@avero/contracts`.   |
+| `task_events`  | The run events of a task as they happen, `(task_id, seq)` unique. The dashboard follows them over server-sent events. Cleared when a task is started again.                                                                                           |
+| `task_outbox`  | One row per "please queue this task", written in the same transaction as the task. The worker reads unpublished rows with `FOR UPDATE SKIP LOCKED`, puts them on the queue and marks them published, so a task is queued if and only if it was saved. |
+
+**GitHub** (migration `0003_github`):
+
+| Table                  | Holds                                                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `github_installations` | A GitHub App installation, attached to exactly one workspace (`installation_id` is unique), with `active` or `suspended`. |
+| `webhook_deliveries`   | GitHub's delivery id of every accepted webhook, so a redelivery is recognised and ignored.                                |
+
+**Agents** (migration `0004_agents`): `agents` holds a named setup per workspace (`name` unique per workspace, `model`, and `rules` up to 6000 characters). A task may name one (`tasks.agent_id`); deleting the agent keeps the task and sets the column to null.
+
+Task authorization is in the query too: every task, repository and agent read or write is filtered by workspace id, and creating a task checks in the same transaction that the repository, and the agent if one is named, belong to that workspace.
+
+The dashboard's tasks, repositories, agents and activity pages read these tables, and need sign-in. The runs, review and evaluations pages still read files, through the same `RunSource` interface the database implements.

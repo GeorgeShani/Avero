@@ -5,7 +5,7 @@ import { Empty, PageHead, Panel } from '../../../../components/console/primitive
 import { loadSuite } from '../../../../server/bench';
 import { stamp } from '../../../../lib/format';
 
-export const metadata: Metadata = { title: 'Bench suite' };
+export const metadata: Metadata = { title: 'Evaluation suite' };
 export const dynamic = 'force-dynamic';
 
 export default async function SuitePage({ params }: { params: Promise<{ suite: string }> }) {
@@ -31,7 +31,7 @@ export default async function SuitePage({ params }: { params: Promise<{ suite: s
               {results.map((result) => (
                 <li key={result.id} style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
                   <div data-item-main>
-                    <Link href={`/bench/${suite.id}/${result.id}`} data-item-title>
+                    <Link href={`/evaluations/${suite.id}/${result.id}`} data-item-title>
                       {stamp(result.startedAt)}
                     </Link>
                     <span data-item-meta>
@@ -55,7 +55,7 @@ export default async function SuitePage({ params }: { params: Promise<{ suite: s
               {hillclimbs.map((climb) => (
                 <li key={climb.id} style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
                   <div data-item-main>
-                    <Link href={`/bench/${suite.id}/${climb.id}`} data-item-title>
+                    <Link href={`/evaluations/${suite.id}/${climb.id}`} data-item-title>
                       {stamp(climb.startedAt)}
                     </Link>
                     <span data-item-meta>

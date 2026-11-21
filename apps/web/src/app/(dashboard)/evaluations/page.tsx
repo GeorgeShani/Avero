@@ -4,19 +4,19 @@ import { Empty, PageHead, Panel } from '../../../components/console/primitives';
 import { loadSuites } from '../../../server/bench';
 import { stamp } from '../../../lib/format';
 
-export const metadata: Metadata = { title: 'Bench' };
+export const metadata: Metadata = { title: 'Evaluations' };
 export const dynamic = 'force-dynamic';
 
 export default async function BenchPage() {
   const { suites, dir } = await loadSuites();
   return (
     <>
-      <PageHead title="Bench">
+      <PageHead title="Evaluations">
         Tasks taken from your repository&apos;s own history, run under each setup you want to
         compare. Every attempt is a recorded run.
       </PageHead>
       {suites.length === 0 ? (
-        <Panel title="No bench suites yet" hint={`Looking in ${dir}`}>
+        <Panel title="No evaluation suites yet" hint={`Looking in ${dir}`}>
           <Empty title="Build one from a repository's history, then run it.">
             <pre data-cmd>
               {`pnpm avero bench init --repo <your repository> --test "npm test"
@@ -42,7 +42,7 @@ pnpm avero bench run <suite> --repo <your repository> --model composer-2.5 --rul
                 {suites.map((suite) => (
                   <tr key={suite.id} data-trow>
                     <th scope="row">
-                      <Link href={`/bench/${suite.id}`} data-trow-link>
+                      <Link href={`/evaluations/${suite.id}`} data-trow-link>
                         {suite.id}
                       </Link>
                     </th>

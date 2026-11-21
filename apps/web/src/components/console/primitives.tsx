@@ -6,8 +6,13 @@ import './console.css';
 const icons = {
   desk: 'M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z',
   runs: 'M4 6h16M4 12h16M4 18h10',
+  tasks: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9',
   review: 'M20 6 9 17l-5-5',
-  bench: 'M4 20V10M10 20V4M16 20v-8M22 20H2',
+  evaluations: 'M4 20V10M10 20V4M16 20v-8M22 20H2',
+  repositories: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  agents:
+    'M12 8V4H8M5 8h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1M2 14h2M20 14h2M9 13v2M15 13v2',
+  activity: 'M22 12h-4l-3 9L9 3l-3 9H2',
   settings: 'M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6',
   workspaces:
     'M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 20v-2a4 4 0 0 0-3-3.9M16 2.1a4 4 0 0 1 0 7.8',

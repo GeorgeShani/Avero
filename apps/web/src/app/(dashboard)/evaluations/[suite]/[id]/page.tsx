@@ -6,7 +6,7 @@ import { PageHead } from '../../../../../components/console/primitives';
 import { loadResult } from '../../../../../server/bench';
 import { stamp } from '../../../../../lib/format';
 
-export const metadata: Metadata = { title: 'Bench result' };
+export const metadata: Metadata = { title: 'Evaluation result' };
 export const dynamic = 'force-dynamic';
 
 export default async function ResultPage({

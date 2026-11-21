@@ -11,6 +11,12 @@ export default function proxy(request: NextRequest, event: NextFetchEvent) {
 export const config = {
   matcher: [
     '/workspaces/:path*',
+    '/tasks/:path*',
+    '/repositories/:path*',
+    '/agents/:path*',
+    '/activity/:path*',
+    '/api/v1/github/install',
+    '/api/v1/github/callback',
     '/sign-in/:path*',
     '/sign-up/:path*',
     '/api/v1/workspaces/:path*',

@@ -13,9 +13,16 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
+    "@avero/bench": "workspace:*",
+    "@avero/coding-engine": "workspace:*",
     "@avero/config": "workspace:*",
     "@avero/contracts": "workspace:*",
-    "@avero/observability": "workspace:*"
+    "@avero/db": "workspace:*",
+    "@avero/github": "workspace:*",
+    "@avero/observability": "workspace:*",
+    "@avero/security": "workspace:*",
+    "bullmq": "6.7.7",
+    "ioredis": "5.11.1"
   },
   "nx": {
     "tags": [
@@ -30,5 +37,8 @@
         ]
       }
     }
+  },
+  "devDependencies": {
+    "drizzle-orm": "0.45.4"
   }
 }

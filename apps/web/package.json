@@ -10,6 +10,7 @@
     "@avero/config": "workspace:*",
     "@avero/contracts": "workspace:*",
     "@avero/db": "workspace:*",
+    "@avero/github": "workspace:*",
     "@avero/observability": "workspace:*",
     "@avero/run-store": "workspace:*",
     "@avero/security": "workspace:*",

@@ -51,6 +51,12 @@ export type RecordRunOptions = {
   approvals?: {
     approve: (request: { action: string; reason: string }) => boolean | Promise<boolean>;
   };
+  /**
+   * Let the agent load the folder's own Cursor settings (rules, skills and `.cursor/hooks.json`).
+   * Off by default: a run then sees nothing the folder says about itself. Turn it on only for a
+   * folder whose contents you trust, or one whose hooks you wrote yourself.
+   */
+  projectSettings?: boolean;
   /** The Cursor SDK by default. Tests pass a fake. */
   createAgent?: CreateAgent;
 };
@@ -226,6 +232,7 @@ export async function recordRun(options: RecordRunOptions): Promise<RecordedRun>
       local: {
         cwd: options.cwd,
         sandboxOptions: { enabled: options.sandbox ?? true },
+        ...(options.projectSettings ? { settingSources: ['project' as const] } : {}),
         ...(approvalTool ? { customTools: { request_approval: approvalTool } } : {}),
       },
     });

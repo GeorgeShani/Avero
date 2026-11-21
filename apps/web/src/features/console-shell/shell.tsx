@@ -140,9 +140,13 @@ function crumbs(pathname: string): { label: string; href?: string }[] {
   const [first, second, third] = pathname.split('/').filter(Boolean);
   const names: Record<string, string> = {
     overview: 'Desk',
+    tasks: 'Tasks',
     runs: 'Runs',
     review: 'Review',
-    bench: 'Bench',
+    evaluations: 'Evaluations',
+    repositories: 'Repositories',
+    agents: 'Agents',
+    activity: 'Activity',
     settings: 'Settings',
   };
   if (!first) return [{ label: 'Desk' }];
@@ -176,7 +180,11 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
       ...navigation.flatMap((group) =>
         group.items.map((item) => ({ label: item.label, hint: 'Page', href: item.href })),
       ),
-      ...data.suiteIds.map((id) => ({ label: id, hint: 'Bench suite', href: `/bench/${id}` })),
+      ...data.suiteIds.map((id) => ({
+        label: id,
+        hint: 'Evaluation suite',
+        href: `/evaluations/${id}`,
+      })),
       ...data.recent.map((run) => ({
         label: run.task.length > 70 ? `${run.task.slice(0, 70)}…` : run.task,
         hint: run.id,
@@ -189,7 +197,7 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
   const counts: Record<string, { value: number; alert?: boolean } | undefined> = {
     '/runs': data.runs > 0 ? { value: data.runs } : undefined,
     '/review': data.toDecide > 0 ? { value: data.toDecide, alert: data.risky > 0 } : undefined,
-    '/bench': data.suites > 0 ? { value: data.suites } : undefined,
+    '/evaluations': data.suites > 0 ? { value: data.suites } : undefined,
   };
 
   const trail = crumbs(pathname);

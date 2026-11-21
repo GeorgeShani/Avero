@@ -15,6 +15,20 @@ pnpm exec nx dev @avero/worker
 
 The web app serves `http://localhost:3000`, the worker `http://127.0.0.1:3101/healthz`. Workspaces need Clerk development keys and `DATABASE_URL`. See the [README](../README.md) for the full setup and [infra/README.md](../infra/README.md) for Docker.
 
+## Running tasks from the dashboard
+
+Needs Clerk keys, `DATABASE_URL`, Redis and a Cursor key for the worker. Set these (see `.env.example`), start the web app and the worker, and open **Repositories** to add a folder, then **Tasks**.
+
+| Variable                                                                                                     | For                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `REDIS_URL`                                                                                                  | The task queue (the worker and the tests)                                                                |
+| `AVERO_REPOSITORY_ROOTS`                                                                                     | Folders the worker may use, separated by `;` on Windows and `:` elsewhere. Empty: no folder repositories |
+| `AVERO_WORKER_CONCURRENCY`, `AVERO_WORKER_SANDBOX`, `AVERO_WORKER_GUARD`                                     | Parallel tasks; Cursor's sandbox; the command guard (on by default)                                      |
+| `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_STATE_SECRET` | The GitHub App. All five, or GitHub stays off                                                            |
+| `AVERO_TEST_DATABASE_URL`, `AVERO_TEST_REDIS_URL`                                                            | Run the database and queue tests against real services; unset, they are skipped                          |
+
+`node tools/scripts/e2e-task.mjs finish|cancel|guard` runs a real task end to end against the local services.
+
 ## Everyday commands
 
 | Task                               | Command                                                             |

@@ -58,6 +58,34 @@ Bad input, unknown runs and damaged records come back as MCP tool errors without
 
 The run record is the stable interface between the recorder, the console, the exports and the bench: JSONL, one event per line, validated by `parseRunRecord` in `@avero/contracts`. Beside it live `<run>.verdict.json` and `<run>.decision.json`, and bench data under `<repo>/.avero/bench/`. Anything that reads those schemas can build on them. Agent Trace output (`avero trace`) follows the open spec, with caveats listed in [sharing.md](sharing.md).
 
+## Tasks, repositories and agents (HTTP)
+
+All under `/api/v1/workspaces/{id}`, with the signed-in Clerk session. The rules are in `apps/web/src/server/task-api.ts`; they answer 404 to a non-member exactly as a missing workspace does, 403 to a role that may not do the thing, and 400 to bad input.
+
+| Method and path                | Does                                                                                                                                                                                                          | Who                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `GET  /repositories`           | Lists repositories (never their folders)                                                                                                                                                                      | any member                     |
+| `POST /repositories`           | Registers a folder `{ name, path }`; the path must be inside `AVERO_REPOSITORY_ROOTS` once symbolic links are resolved. The answer is the same for "no such folder" and "outside the roots".                  | owner, admin                   |
+| `GET  /agents`, `POST /agents` | Lists agents; creates one `{ name, model, rules }`                                                                                                                                                            | read: any; write: owner, admin |
+| `DELETE /agents/{agentId}`     | Deletes an agent; its tasks keep running                                                                                                                                                                      | owner, admin                   |
+| `GET  /tasks`                  | Lists the newest 50 tasks                                                                                                                                                                                     | any member                     |
+| `POST /tasks`                  | Launches `{ repositoryId, prompt, agentId?, model?, review?, limits? }`. Saves the task and its outbox row in one transaction; the worker queues it. 201 with the task.                                       | owner, admin, member           |
+| `GET  /tasks/{taskId}`         | Reads one task                                                                                                                                                                                                | any member                     |
+| `POST /tasks/{taskId}/cancel`  | A queued task is cancelled at once; a running one becomes `cancelling` and its worker stops it. Asking twice, or too late, returns the task as it is.                                                         | owner, admin, member           |
+| `GET  /tasks/{taskId}/events`  | Server-sent events: one `run` event per recorded run event (`id` is its sequence number, so `Last-Event-ID` resumes), then one `end` event with the final status. A comment line goes out on each quiet poll. | any member                     |
+
+A model given in a launch wins over the agent's, which wins over `AVERO_CURSOR_MODEL`.
+
+## GitHub (HTTP)
+
+| Path                                    | Does                                                                                                                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/github/install?workspace=` | Starts the App installation: redirects to GitHub with a signed `state` (workspace, user, ten-minute expiry). The caller must be an owner or admin of that workspace.                  |
+| `GET /api/v1/github/callback`           | GitHub sends the person back here. The state must verify and match the signed-in user; the installation is then linked to that workspace only, and its repositories are synced.       |
+| `POST /api/v1/github/webhook`           | GitHub's deliveries. The `X-Hub-Signature-256` HMAC is checked, in constant time, over the raw body before anything is parsed; a delivery id seen before is acknowledged and ignored. |
+
+Handled events: `installation` and `installation_repositories` (keep the repository list current, suspend or remove), and `pull_request` `opened`, `reopened`, `synchronize` and `ready_for_review`, which create one review task per pull request and head commit (a redelivery or a second event for the same commit creates none). All three answer 503 when the GitHub App's environment variables are not set. A task from a pull request clones the repository with an installation token, reviews the change and posts the verdict as a comment on the pull request; it never pushes.
+
 ## Not built yet
 
-A task API (launch, cancel, stream events), webhook endpoints, API tokens for the CLI, and reading runs back over HTTP arrive with the cloud work. This page will describe them when they exist.
+API tokens for the CLI (so it can push runs), and reading runs back over HTTP. They arrive with the cloud sync work.

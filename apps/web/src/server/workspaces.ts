@@ -27,7 +27,7 @@ export function databaseConfigured() {
   return postgresUrlSchema.safeParse(process.env.DATABASE_URL).success;
 }
 
-function database() {
+export function database() {
   const url = postgresUrlSchema.parse(process.env.DATABASE_URL);
   connection ??= connectDatabase(url);
   return connection;

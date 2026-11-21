@@ -65,6 +65,7 @@ export default defineConfig([
           allow: [
             '@avero/config',
             '@avero/db',
+            '@avero/github',
             '@avero/observability',
             '@avero/run-store',
             '@avero/security',

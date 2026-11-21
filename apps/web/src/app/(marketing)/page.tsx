@@ -19,7 +19,11 @@ const doors = [
   },
   { href: '/runs', title: 'Runs', body: 'Every recorded run, with its replay and diff' },
   { href: '/review', title: 'Review', body: 'Finished runs waiting for you, riskiest first' },
-  { href: '/bench', title: 'Bench', body: 'Which model and rules resolve the most tasks' },
+  {
+    href: '/evaluations',
+    title: 'Evaluations',
+    body: 'Which model and rules resolve the most tasks',
+  },
 ] as const;
 
 const shipped = [
