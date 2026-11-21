@@ -1,5 +1,6 @@
 import { URL } from 'node:url';
 import { z } from 'zod';
+import { defaultAppUrl, defaultWorkerPort } from './constants.ts';
 
 const workerEnvironment = z.object({
   AVERO_WORKER_PORT: z
@@ -7,7 +8,7 @@ const workerEnvironment = z.object({
     .regex(/^\d+$/)
     .transform(Number)
     .pipe(z.number().int().min(1).max(65535))
-    .default(3101),
+    .default(defaultWorkerPort),
 });
 
 export function readWorkerPort(environment: Record<string, string | undefined>): number {
@@ -22,7 +23,7 @@ export function readWorkerPort(environment: Record<string, string | undefined>):
 const clerkEnvironment = z.object({
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().regex(/^pk_(test|live)_\S+$/),
   CLERK_SECRET_KEY: z.string().regex(/^sk_(test|live)_\S+$/),
-  AVERO_APP_URL: z.url({ protocol: /^https?$/ }).default('http://localhost:3000'),
+  AVERO_APP_URL: z.url({ protocol: /^https?$/ }).default(defaultAppUrl),
 });
 
 export function readClerkEnvironment(environment: Record<string, string | undefined>) {

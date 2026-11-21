@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseRunRecord, type RunEvent } from './run-record.ts';
+import { parseRunRecord, type RunEvent } from '../events/run-record.ts';
 import {
   checkCounts,
   commandsRun,

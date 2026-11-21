@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { AgentOptions, SDKCustomTool, SDKMessage } from '@cursor/sdk';
 import { parseRunRecord, type RunEvent, type TokenUsage } from '@avero/contracts';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { AgentLike, AgentRunLike, CreateAgent } from './agent-port.ts';
+import type { AgentLike, AgentRunLike, CreateAgent } from '../adapters/agent-port.ts';
 import { approvalGuidance, recordRun } from './recorder.ts';
 
 const ids = { agent_id: 'a', run_id: 'r' };

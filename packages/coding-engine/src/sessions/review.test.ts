@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import type { AgentOptions, SDKCustomTool } from '@cursor/sdk';
 import { parseRunRecord, type RunEvent, type VerdictSubmission } from '@avero/contracts';
 import { describe, expect, it } from 'vitest';
-import type { AgentLike, CreateAgent } from './agent-port.ts';
+import type { AgentLike, CreateAgent } from '../adapters/agent-port.ts';
 import { buildDigest, ReviewError, reviewRun } from './review.ts';
 
 const events: RunEvent[] = [

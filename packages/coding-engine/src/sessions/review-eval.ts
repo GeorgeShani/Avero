@@ -1,5 +1,5 @@
 import { parseRunRecord, type RunEvent, type RunRecord, type Verdict } from '@avero/contracts';
-import type { CreateAgent } from './agent-port.ts';
+import type { CreateAgent } from '../adapters/agent-port.ts';
 import { reviewRun } from './review.ts';
 
 /**

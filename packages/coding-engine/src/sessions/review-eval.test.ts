@@ -1,7 +1,7 @@
 import type { SDKCustomTool } from '@cursor/sdk';
 import type { VerdictSubmission } from '@avero/contracts';
 import { describe, expect, it } from 'vitest';
-import type { AgentLike, CreateAgent } from './agent-port.ts';
+import type { AgentLike, CreateAgent } from '../adapters/agent-port.ts';
 import { judge, reviewCases, runReviewEval } from './review-eval.ts';
 
 const byId = (id: string) => {

@@ -280,6 +280,8 @@ avero/
 
 **Important:** This structure is the desired logical architecture. Allow Nx generators to create their supported configuration files and adapt the exact placement of `project.json`, TypeScript configurations, and build outputs to the installed Nx version. Do not create redundant configuration solely to match the diagram.
 
+**Added since this diagram was drawn.** The product became a flight recorder and test bench for coding agents, local-first, with the hosted platform on top. These projects exist and are part of the structure: `apps/cli` (the `avero` command), `packages/run-store` (run, verdict, decision and bench files), `packages/bench` (tasks from history, the matrix runner, hillclimb), `packages/share` (one-file replay, Agent Trace, local viewer) and `packages/mcp` (the MCP server). The route groups are currently `(platform)`, `(console)` and `(marketing)`; [docs/structure-plan.md](docs/structure-plan.md) says how and when the tree reaches the layout above.
+
 ---
 
 # 4. Nx Initialization

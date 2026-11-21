@@ -38,7 +38,7 @@ Playwright end-to-end tests arrive with Milestone 2.
 
 ## Vendored UI kit
 
-`packages/ui/src/hardware/` is the SPEC-01 hardware kit, copied from https://spec-01.vercel.app/r/registry.json and owned by this repo. It is excluded from ESLint and Prettier, and `@avero/ui` turns off `noUncheckedIndexedAccess` for it. Edit it deliberately; re-importing overwrites local changes (text fields, stepper, wheel select, resizable and command palette were adapted).
+`packages/ui/src/primitives/` is the SPEC-01 hardware kit, copied from https://spec-01.vercel.app/r/registry.json and owned by this repo. It is excluded from ESLint and Prettier, and `@avero/ui` turns off `noUncheckedIndexedAccess` for it. Edit it deliberately; re-importing overwrites local changes (text fields, stepper, wheel select, resizable and command palette were adapted).
 
 ## Boundaries
 

@@ -8,4 +8,4 @@ next-env.d.ts
 .agent-sdk/
 reports/
 
-packages/ui/src/hardware/
+packages/ui/src/primitives/

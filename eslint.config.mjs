@@ -32,7 +32,7 @@ export default defineConfig([
   ...nx.configs['flat/javascript'],
   {
     ignores: [
-      'packages/ui/src/hardware/**',
+      'packages/ui/src/primitives/**',
       '**/dist/**',
       '**/.next/**',
       '**/.nx/**',

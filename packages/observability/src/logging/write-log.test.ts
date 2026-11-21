@@ -1,6 +1,6 @@
 import process from 'node:process';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { writeLog } from './index.ts';
+import { writeLog } from './write-log.ts';
 
 afterEach(() => vi.restoreAllMocks());
 

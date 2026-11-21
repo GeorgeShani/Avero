@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { runStatusSchema, tokenUsageSchema, type TokenUsage } from './run-record.ts';
+import { runStatusSchema, tokenUsageSchema, type TokenUsage } from '../events/run-record.ts';
 
 /**
  * Bench answers "which setup works best on my repository, per dollar?". A suite is a set of tasks

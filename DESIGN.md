@@ -60,7 +60,7 @@ Rounded molded bodies, circular keys and dials, square-ish LCD and OLED screens.
 
 ## Components
 
-Vendored from the SPEC-01 registry into `packages/ui/src/hardware/` and owned by this repo. Avero adapts a few of them (text fields, stepper, wheel select, resizable and command palette accept props and change callbacks). Used today: Navbar, Device, Display, DPad, SlideSwitch, ModeDial, Segmented, ItemList, Lcd, Meter, BarGraph, Card, Tabs, CodeBlock, AlertDialog, CommandPalette, Toasts, Feed, Switch, Stepper, Select, TextField, Textarea, Button. Avero adds `TaskStatusBadge` and the brand marks.
+Vendored from the SPEC-01 registry into `packages/ui/src/primitives/` and owned by this repo. Avero adapts a few of them (text fields, stepper, wheel select, resizable and command palette accept props and change callbacks). Used today: Navbar, Device, Display, DPad, SlideSwitch, ModeDial, Segmented, ItemList, Lcd, Meter, BarGraph, Card, Tabs, CodeBlock, AlertDialog, CommandPalette, Toasts, Feed, Switch, Stepper, Select, TextField, Textarea, Button. Avero adds `TaskStatusBadge` and the brand marks.
 
 ## Do's and Don'ts
 

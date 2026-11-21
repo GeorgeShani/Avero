@@ -1,6 +1,6 @@
 import process from 'node:process';
 import { Cursor } from '@cursor/sdk';
-import { runCursorSmoke, SmokeCheckError } from './index.ts';
+import { runCursorSmoke, SmokeCheckError } from './smoke.ts';
 
 const command = process.argv[2];
 
@@ -21,7 +21,7 @@ try {
       break;
     }
     default:
-      throw new SmokeCheckError('Usage: node dist/cli.js <login|auth|smoke>');
+      throw new SmokeCheckError('Usage: node dist/cursor/cli.js <login|auth|smoke>');
   }
 } catch (error) {
   if (error instanceof SmokeCheckError) {

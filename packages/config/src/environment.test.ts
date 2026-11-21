@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readClerkEnvironment, readWorkerPort } from './index.ts';
+import { readClerkEnvironment, readWorkerPort } from './environment.ts';
 
 describe('readWorkerPort', () => {
   it('defaults to 3101 when unset', () => {

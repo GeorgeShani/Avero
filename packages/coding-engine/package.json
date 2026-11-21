@@ -12,9 +12,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "cursor:login": "node dist/cli.js login",
-    "cursor:auth": "node dist/cli.js auth",
-    "cursor:smoke": "node dist/cli.js smoke"
+    "cursor:login": "node dist/cursor/cli.js login",
+    "cursor:auth": "node dist/cursor/cli.js auth",
+    "cursor:smoke": "node dist/cursor/cli.js smoke"
   },
   "dependencies": {
     "@avero/contracts": "workspace:*",

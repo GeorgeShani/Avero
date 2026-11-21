@@ -3,7 +3,7 @@ import type { Workspace } from '@avero/contracts';
 import { workspaceEditors } from '@avero/security';
 import { and, asc, eq, exists, inArray, sql } from 'drizzle-orm';
 import type { AveroDatabase } from './client.ts';
-import { users, workspaceMembers, workspaces } from './schema.ts';
+import { users, workspaceMembers, workspaces } from './schema/index.ts';
 
 const workspaceFields = { id: workspaces.id, name: workspaces.name, slug: workspaces.slug };
 

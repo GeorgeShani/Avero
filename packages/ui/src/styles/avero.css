@@ -103,3 +103,21 @@
   font-size: 16px;
   line-height: 1;
 }
+
+/* UI SDK pushes a checked switch's thumb to the end with margin-inline-start: auto, and the skin
+   then translates it by the travel distance as well, so the thumb ran past the track. The skin's
+   translate is the whole move, so the margin goes. */
+[data-skin='hardware'] [data-kit='switch-thumb'][data-checked]:not(#_) {
+  margin-inline-start: 0;
+}
+
+/* A link styled as a key. The SDK's button is a <button> with its own padding; a plain <a> has
+   none, so it needs the same size and centring. */
+[data-skin='hardware'] a[data-kit='button']:not([data-mk='nav-cta']) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding-inline: 20px;
+  text-decoration: none;
+}

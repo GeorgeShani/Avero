@@ -8,8 +8,8 @@ const databaseUrl = process.env.DATABASE_URL;
 
 export default defineConfig({
   dialect: 'postgresql',
-  schema: './src/schema.ts',
-  out: './drizzle',
+  schema: './src/schema/index.ts',
+  out: './src/migrations',
   ...(databaseUrl
     ? { dbCredentials: { url: z.url({ protocol: /^postgres(?:ql)?$/ }).parse(databaseUrl) } }
     : {}),

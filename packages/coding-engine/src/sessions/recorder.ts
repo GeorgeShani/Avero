@@ -9,11 +9,12 @@ import {
   type TokenUsage,
 } from '@avero/contracts';
 import { redactSecrets } from '@avero/security';
-import { createCursorAgent, type AgentRunLike, type CreateAgent } from './agent-port.ts';
-import { createCoalescer } from './coalesce.ts';
+import type { AgentRunLike, CreateAgent } from '../adapters/agent-port.ts';
+import { createCursorAgent } from '../cursor/create-cursor-agent.ts';
+import { createCoalescer } from '../events/coalesce.ts';
 import { collectChanges, gitState } from './git-changes.ts';
 import { limitReason, sumUsage, type RunLimits } from './limits.ts';
-import { scrubWorkspacePath } from './scrub.ts';
+import { scrubWorkspacePath } from '../events/scrub.ts';
 
 const maxFieldChars = 8_000;
 const maxGateChars = 8_000;

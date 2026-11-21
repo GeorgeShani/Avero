@@ -2,7 +2,7 @@ import { workspaceRoles } from '@avero/contracts';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { describe, expect, it } from 'vitest';
 import { postgresUrlSchema } from './index.ts';
-import { users, workspaceMembers, workspaceRole, workspaces } from './schema.ts';
+import { users, workspaceMembers, workspaceRole, workspaces } from './schema/index.ts';
 
 describe('postgresUrlSchema', () => {
   it.each(['postgres://u:p@localhost:5432/avero', 'postgresql://u:p@db.internal/avero'])(

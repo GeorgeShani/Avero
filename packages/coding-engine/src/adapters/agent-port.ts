@@ -1,4 +1,4 @@
-import { Agent, type AgentOptions, type SDKMessage } from '@cursor/sdk';
+import type { AgentOptions, SDKMessage } from '@cursor/sdk';
 import type { TokenUsage } from '@avero/contracts';
 
 /**
@@ -26,7 +26,3 @@ export type AgentLike = {
 };
 
 export type CreateAgent = (options: AgentOptions) => Promise<AgentLike>;
-
-/** The real SDK. Its types are wider than the slice above, so this is the one place they meet. */
-export const createCursorAgent: CreateAgent = async (options) =>
-  (await Agent.create(options)) as unknown as AgentLike;

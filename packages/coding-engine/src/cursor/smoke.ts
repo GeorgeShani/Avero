@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { Agent, JsonlLocalAgentStore } from '@cursor/sdk';
-import { summarizeCursorEvent } from './stream-event.ts';
-import type { CursorStreamEvent } from './stream-event.ts';
+import { summarizeCursorEvent } from '../events/stream-event.ts';
+import type { CursorStreamEvent } from '../events/stream-event.ts';
 
 export class SmokeCheckError extends Error {}
 

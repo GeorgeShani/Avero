@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { tokenUsageSchema, toolSpans, type RunRecord, type RunSummary } from './run-record.ts';
+import {
+  tokenUsageSchema,
+  toolSpans,
+  type RunRecord,
+  type RunSummary,
+} from '../events/run-record.ts';
 
 /**
  * A verdict is an independent reviewer agent's answer to "does this diff do what the task asked,

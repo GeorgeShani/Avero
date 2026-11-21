@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Nx compares against the base branch, so it needs the history.
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        # The version comes from "packageManager" in package.json.
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: nrwl/nx-set-shas@v4
+
+      - name: Workspace graph and tags
+        run: pnpm verify:workspace
+
+      - name: Formatting
+        run: pnpm format:check
+
+      - name: Lint, typecheck, test and build what changed
+        run: pnpm exec nx affected -t lint typecheck test build --output-style=static

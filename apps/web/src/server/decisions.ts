@@ -1,9 +1,7 @@
-import { decisions } from '@avero/contracts';
+import { checkDecision } from '@avero/security';
 import { isRunId, readRun, writeDecision } from '@avero/run-store';
 
 export type DecisionResult = { ok: true } | { ok: false; error: string };
-
-const maxNote = 2000;
 
 /**
  * Records a person's decision on a run. The viewer has no accounts, so anyone who can open it can
@@ -13,13 +11,10 @@ export async function recordDecision(
   input: { runId: string; decision: string; note: string },
   deps: { dir: string; readOnly: boolean; now?: () => Date },
 ): Promise<DecisionResult> {
-  if (deps.readOnly) return { ok: false, error: 'This viewer is read-only.' };
+  const checked = checkDecision(input, { readOnly: deps.readOnly });
+  if (!checked.ok) return checked;
   if (!isRunId(input.runId)) return { ok: false, error: 'That is not a valid run.' };
-  const decision = decisions.find((candidate) => candidate === input.decision);
-  if (!decision) return { ok: false, error: 'Choose approve, request changes or reject.' };
-  const note = input.note.trim();
-  if (note.length > maxNote)
-    return { ok: false, error: `The note is longer than ${maxNote} characters.` };
+  const { decision, note } = checked;
 
   try {
     await readRun(deps.dir, input.runId);

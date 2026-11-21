@@ -14,7 +14,8 @@ import {
   type Verdict,
   type VerdictSubmission,
 } from '@avero/contracts';
-import { createCursorAgent, type CreateAgent } from './agent-port.ts';
+import type { CreateAgent } from '../adapters/agent-port.ts';
+import { createCursorAgent } from '../cursor/create-cursor-agent.ts';
 
 const maxPatchChars = 60_000;
 const maxClaimChars = 3_000;
