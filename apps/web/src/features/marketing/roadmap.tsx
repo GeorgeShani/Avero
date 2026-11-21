@@ -3,7 +3,7 @@
 import { Reveal } from './reveal';
 import { phases } from './run-data';
 
-/** All six phases at once, so the order and what is next are visible without clicking. */
+/** All the phases at once, so the order and what is next are visible without clicking. */
 export function Roadmap() {
   return (
     <ol data-mk="roadmap" aria-label="Roadmap phases">

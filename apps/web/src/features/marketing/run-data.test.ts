@@ -25,8 +25,8 @@ describe('the bench example', () => {
 });
 
 describe('the roadmap', () => {
-  it('lists the six phases in order, with a state each', () => {
-    expect(phases.map((phase) => phase.id)).toEqual(['0', '1', '2', '3', '4', '5']);
+  it('lists the phases in order, with a state each', () => {
+    expect(phases.map((phase) => phase.id)).toEqual(['0', '1', '2', '3', '4', '5', '6', '7']);
     for (const phase of phases) expect(phase.state).not.toBe('');
   });
 });

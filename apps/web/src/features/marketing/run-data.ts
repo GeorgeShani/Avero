@@ -32,8 +32,20 @@ export const phases = [
   },
   {
     id: '5',
-    name: 'Avero Cloud',
-    body: 'Run sync, a launch board, a review queue, the GitHub App, cloud agents and Slack channels.',
+    name: 'Hosted workspace',
+    body: 'Workspaces, a task queue and worker, repositories, named agents, GitHub pull request review and an activity feed.',
+    state: 'Built',
+  },
+  {
+    id: '6',
+    name: 'Release and operate',
+    body: 'OpenTelemetry traces and metrics, container images, a release workflow and a package generator. Nothing is deployed yet.',
+    state: 'Built',
+  },
+  {
+    id: '7',
+    name: 'Cloud agents and Slack',
+    body: 'Run sync from the command line, Cursor-hosted agents for the reviewer, Slack channels and schedules.',
     state: 'Planned',
   },
 ] as const;

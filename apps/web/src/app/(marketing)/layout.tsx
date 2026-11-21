@@ -23,6 +23,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
           { href: '#recorder', label: 'Recorder' },
           { href: '#verdict', label: 'Verdict' },
           { href: '#bench', label: 'Bench' },
+          { href: '#hosted', label: 'Hosted' },
           { href: '#agents', label: 'Agents' },
           { href: '#roadmap', label: 'Roadmap' },
         ]}

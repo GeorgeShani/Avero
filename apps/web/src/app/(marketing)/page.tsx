@@ -24,6 +24,39 @@ const doors = [
     title: 'Evaluations',
     body: 'Which model and rules resolve the most tasks',
   },
+  {
+    href: '/tasks',
+    title: 'Tasks',
+    body: 'Launch an agent on a repository and watch it work. Needs sign-in and a worker',
+  },
+  {
+    href: '/agents',
+    title: 'Agents',
+    body: 'Named setups: a model and the rules it follows. Needs sign-in',
+  },
+] as const;
+
+const hosted = [
+  {
+    title: 'Launch from the dashboard',
+    body: 'Write a task, pick a repository, and a worker runs the agent in a throwaway copy. Follow it live, stop it, then open the run it recorded.',
+    command: '/tasks',
+  },
+  {
+    title: 'Pull request review',
+    body: 'Install the GitHub App and each pull request commit gets one review task. The verdict is posted as a comment. Avero never pushes.',
+    command: '/repositories',
+  },
+  {
+    title: 'Named agents',
+    body: 'Save a model and a set of rules, then launch tasks with it. Rules found by a hillclimb go here.',
+    command: '/agents',
+  },
+  {
+    title: 'Guarded and recoverable',
+    body: 'Pushes, remote shells and fetch-and-run are refused in the working copy. A task whose worker died, or whose job the queue lost, is put back.',
+    command: 'guard · retries',
+  },
 ] as const;
 
 const shipped = [
@@ -147,13 +180,42 @@ export default function MarketingPage() {
           </ul>
         </Reveal>
         <p data-mk="aside">
-          Planned, not built: GitHub, Slack, webhooks, schedules and OpenTelemetry export.
+          Planned, not built: Slack, schedules, and sending runs from the command line to a
+          workspace.
+        </p>
+      </section>
+
+      <section id="hosted" data-mk="section" aria-labelledby="hosted-title">
+        <Reveal data-head="">
+          <p data-mk="kicker">05 · Hosted</p>
+          <h2 id="hosted-title">Run agents for a team, from a browser.</h2>
+          <p data-mk="lede">
+            A workspace keeps repositories, agents and tasks for your team. Tasks wait in a queue
+            and run on a worker you operate, in a copy of the repository, so the repository itself
+            is never touched. Every task ends as the same recorded run you can replay and review.
+          </p>
+        </Reveal>
+        <Reveal delay={120}>
+          <ul data-mk="ship" aria-label="What a workspace can do">
+            {hosted.map((item) => (
+              <li key={item.title}>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+                <code>{item.command}</code>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+        <p data-mk="aside">
+          Built and tested against a real database and queue, and run end to end with a real agent
+          on one machine. Not yet done: running the GitHub App against github.com, deploying it to a
+          host, and the worker inside its container running a real task.
         </p>
       </section>
 
       <section id="agents" data-mk="section" aria-labelledby="agents-title">
         <Reveal data-head="">
-          <p data-mk="kicker">05 · Agents</p>
+          <p data-mk="kicker">06 · Agents</p>
           <h2 id="agents-title">Built to be operated by agents, too.</h2>
           <p data-mk="lede">
             Every control on this page tells an agent what it is, what it holds and what it can do.
@@ -196,7 +258,8 @@ export default function MarketingPage() {
           <h2 id="roadmap-title">Where this is going, in order.</h2>
           <p data-mk="lede">
             Local-first first: one command and one API key. Phases 0 to 4 are built and have been
-            run on real agents; a hosted team workspace comes after, over the same record format.
+            run on real agents. The hosted workspace and the release work are built and tested but
+            not yet deployed; Slack and run sync from the command line come next.
           </p>
         </Reveal>
         <Roadmap />
@@ -208,8 +271,9 @@ export default function MarketingPage() {
           <h2 id="closing-title">Record a run, then replay it.</h2>
           <p data-mk="lede">
             Record a run with the command line, then open it here: the replay, the diff and the
-            reviewer&apos;s verdict side by side, your decision, and the bench results, all read
-            from files on your machine. Nothing in the console is simulated.
+            reviewer&apos;s verdict side by side, your decision, and the evaluation results. Those
+            screens read files on your machine. Tasks, repositories and agents live in a workspace
+            and need sign-in and a database. Nothing in the console is simulated.
           </p>
           <Link data-kit="button" data-tone="primary" href="/overview">
             Open the console
