@@ -7,6 +7,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./migrate": {
+      "types": "./dist/migrate.d.ts",
+      "default": "./dist/migrate.js"
     }
   },
   "scripts": {
@@ -47,5 +51,12 @@
         ]
       }
     }
+  },
+  "files": [
+    "dist",
+    "src/migrations"
+  ],
+  "bin": {
+    "avero-migrate": "./dist/migrate-cli.js"
   }
 }

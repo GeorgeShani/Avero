@@ -23,20 +23,20 @@ The control plane and the execution plane meet through authenticated APIs and th
 
 ## Shared packages
 
-| Package                | Owns                                                                                                   |
-| ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| `@avero/contracts`     | Zod schemas and types shared across processes                                                          |
-| `@avero/config`        | Typed environment parsing (worker, Clerk, GitHub App, repository roots)                                |
-| `@avero/db`            | Drizzle schema, migrations, and the queries for workspaces, runs, tasks, the outbox, agents and GitHub |
-| `@avero/security`      | Permissions (workspaces, runs, tasks, agents), folder-root checks and secret redaction                 |
-| `@avero/observability` | Structured JSON logging                                                                                |
-| `@avero/coding-engine` | The recorder, run limits, the reviewer agent and its evals, on the Cursor SDK                          |
-| `@avero/run-store`     | Reading and writing run records, verdicts, decisions and bench files                                   |
-| `@avero/bench`         | Task suites from git history, the matrix runner, hillclimb                                             |
-| `@avero/share`         | One-file HTML replay, secret redaction for export, Agent Trace, local viewer                           |
-| `@avero/mcp`           | The read-only MCP server over recorded runs                                                            |
-| `@avero/github`        | GitHub App: webhook signature, installation state, REST client, pull request comments                  |
-| `@avero/ui`            | Shared interface components and tokens                                                                 |
+| Package                | Owns                                                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `@avero/contracts`     | Zod schemas and types shared across processes                                                                                        |
+| `@avero/config`        | Typed environment parsing (worker, Clerk, GitHub App, repository roots)                                                              |
+| `@avero/db`            | Drizzle schema, migrations, and the queries for workspaces, runs, tasks, the outbox, agents and GitHub                               |
+| `@avero/security`      | Permissions (workspaces, runs, tasks, agents), folder-root checks and secret redaction                                               |
+| `@avero/observability` | Structured JSON logging with secret scrubbing, OpenTelemetry tracing and metrics (`withSpan`, `recordTaskSettled`, `startTelemetry`) |
+| `@avero/coding-engine` | The recorder, run limits, the reviewer agent and its evals, on the Cursor SDK                                                        |
+| `@avero/run-store`     | Reading and writing run records, verdicts, decisions and bench files                                                                 |
+| `@avero/bench`         | Task suites from git history, the matrix runner, hillclimb                                                                           |
+| `@avero/share`         | One-file HTML replay, secret redaction for export, Agent Trace, local viewer                                                         |
+| `@avero/mcp`           | The read-only MCP server over recorded runs                                                                                          |
+| `@avero/github`        | GitHub App: webhook signature, installation state, REST client, pull request comments                                                |
+| `@avero/ui`            | Shared interface components and tokens                                                                                               |
 
 Libraries publish compiled output from `dist/` through a single entry point. Nx builds dependencies first for builds, type checks and tests.
 
@@ -69,4 +69,4 @@ Run data is files, not rows: run records, verdicts, decisions and bench results 
 
 ## Not built yet
 
-A dashboard that reads runs from the database (the console still reads files), CLI run sync, OpenTelemetry, deployment. See [structure-plan.md](structure-plan.md) and the milestones in [`AVERO.md`](../AVERO.md). Related pages: [database](database.md), [security](security.md), [api](api.md). `deployment.md` is written with the release work.
+A dashboard that reads runs from the database (the console still reads files) and CLI run sync. Releases and deployment are in [deployment.md](deployment.md). See [structure-plan.md](structure-plan.md) and the milestones in [`AVERO.md`](../AVERO.md). Related pages: [database](database.md), [security](security.md), [api](api.md), [deployment](deployment.md).

@@ -19,7 +19,7 @@ import {
   type ClaimedTask,
 } from '@avero/db';
 import { pullRequestComment } from '@avero/github';
-import { writeLog } from '@avero/observability';
+import { recordGuardDenied, scrubSecrets, writeLog } from '@avero/observability';
 import { CheckoutRefused, withCheckout, type GithubAccess } from './checkout.ts';
 import { lifecyclePolicy, outcomeFor, type TaskOutcome } from '../lifecycle/policy.ts';
 
@@ -43,8 +43,11 @@ export type RunTaskDeps = {
 };
 
 function failureMessage(error: unknown): string {
-  // Only the message: a stack can carry paths and nothing a person can act on.
-  return error instanceof Error && error.message ? error.message.slice(0, 500) : 'The task failed.';
+  // Only the message: a stack can carry paths and nothing a person can act on. The message is
+  // stored and shown to people, and a failing command can echo a credential, so it is scrubbed.
+  return error instanceof Error && error.message
+    ? scrubSecrets(error.message.slice(0, 500))
+    : 'The task failed.';
 }
 
 /**
@@ -136,6 +139,7 @@ export async function runTask(task: ClaimedTask, deps: RunTaskDeps): Promise<Tas
         });
         const audit = await readGuardAudit(auditFile);
         const denied = audit.filter((entry) => entry.decision === 'deny').length;
+        recordGuardDenied(denied);
         if (audit.length > 0) {
           writeLog('info', 'task.commands_checked', {
             taskId: task.id,
@@ -156,7 +160,7 @@ export async function runTask(task: ClaimedTask, deps: RunTaskDeps): Promise<Tas
     const outcome = outcomeFor(
       {
         status: recorded.status,
-        ...(record.finished?.error ? { error: record.finished.error } : {}),
+        ...(record.finished?.error ? { error: scrubSecrets(record.finished.error) } : {}),
       },
       stopRequested,
     );

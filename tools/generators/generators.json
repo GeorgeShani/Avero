@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "name": "avero-generators",
+  "version": "0.0.0",
+  "generators": {
+    "package": {
+      "factory": "./package/generator",
+      "schema": "./package/schema.json",
+      "description": "Creates a shared library in packages/ with the workspace's tags, TypeScript setup and an optional test setup."
+    }
+  }
+}

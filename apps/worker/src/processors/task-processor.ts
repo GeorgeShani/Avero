@@ -1,5 +1,5 @@
 import { claimTask } from '@avero/db';
-import { writeLog } from '@avero/observability';
+import { recordTaskSettled, withSpan, writeLog } from '@avero/observability';
 import { runTask, type RunTaskDeps } from '../orchestration/index.ts';
 
 /**
@@ -14,6 +14,11 @@ export async function processTask(taskId: string, deps: RunTaskDeps): Promise<'r
     return 'skipped';
   }
   writeLog('info', 'task.started', { taskId, attempt: claimed.attempt });
-  await runTask(claimed, deps);
+  const startedAt = Date.now();
+  await withSpan('task.process', { taskId, attempt: claimed.attempt }, async (span) => {
+    const outcome = await runTask(claimed, deps);
+    span.setAttribute('task.status', outcome.status);
+    recordTaskSettled(outcome.status, Date.now() - startedAt);
+  });
   return 'ran';
 }

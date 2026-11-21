@@ -7,7 +7,7 @@ What protects what today, and where the protection stops. The honest limits matt
 - **The recorder scrubs before it saves.** The Cursor API key and the absolute workspace path are replaced in every event, so a run record on disk does not contain them (`packages/coding-engine/src/scrub.ts`).
 - **Export redacts again.** `avero export` runs a pattern pass over the record, verdict and decision for known secret formats. It is a safety net, not a guarantee; the full list and its limits are in [sharing.md](sharing.md). Read an exported file before sending it.
 - **The key stays out of the web server.** Reviews and runs are started from the CLI, where `CURSOR_API_KEY` lives. The console only reads files and writes decisions.
-- **Logs.** `@avero/observability` writes structured JSON lines; callers pass only identifiers and counts. `@avero/security` provides `redactSecrets` for exact known values.
+- **Logs.** `@avero/observability` writes structured JSON lines; callers pass only identifiers and counts. As a net, `writeLog` cuts string values to 300 characters and replaces anything shaped like a credential (keys, tokens, private keys, credentials in a URL, values of secret-named fields). A test reads every `writeLog` call in the repository and fails when one uses a name outside a short allow-list, so adding `prompt` or `error` to a log line cannot happen unnoticed. Spans carry identifiers only, and a failed span records the error's class, never its message. The error stored on a failed task is scrubbed the same way. `@avero/security` provides `redactSecrets` for exact known values.
 
 ## Authorization
 

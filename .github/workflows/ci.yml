@@ -74,3 +74,26 @@ jobs:
 
       - name: Lint, typecheck, test and build what changed
         run: pnpm exec nx affected -t lint typecheck test build --output-style=static
+
+  # The Dockerfiles are what a release builds. Build them here too (without pushing), so a change
+  # that breaks an image fails the pull request and not the release.
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: web, dockerfile: infra/Dockerfile.web }
+          - { name: worker, dockerfile: infra/Dockerfile.worker }
+          - { name: agent-service, dockerfile: infra/Dockerfile.agent-service }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}

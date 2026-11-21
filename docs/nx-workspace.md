@@ -14,6 +14,10 @@ Workspace libraries expose compiled exports from `dist/`. Nx builds dependencies
 
 Builds, type checks, linting, and unit tests are cacheable. Process startup, SDK sign-in, provider runs, and model-based evals execute on demand.
 
+## Generators
+
+`pnpm exec nx g @avero/generators:package <name>` creates a shared library with the tags and TypeScript setup every library shares. See [tools/generators](../tools/generators/README.md).
+
 ## Verify
 
 ```shell

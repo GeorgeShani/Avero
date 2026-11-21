@@ -378,16 +378,28 @@ export function publishOutbox(
 
 // ---- recovery ------------------------------------------------------------------------------
 
-export type Recovery = { requeued: number; failed: number; cancelled: number };
+export type Recovery = {
+  requeued: number;
+  failed: number;
+  cancelled: number;
+  /** Queued tasks whose job had been lost from the queue, put on it again. */
+  republished: number;
+};
 
 /**
  * Finds tasks whose worker stopped touching them (it crashed or was killed) and settles them: a
  * running task is queued again while it has attempts left and failed after that; a task that was
  * being cancelled is cancelled. A requeued task gets a new outbox row, so it reaches the queue.
+ *
+ * With `lostJobAfterMs`, a task still `queued` whose newest outbox row was published longer ago
+ * than that, with nothing waiting to be published, is put on the queue again. That is the case
+ * where the queue lost the job (Redis restarted without its data, or the queue was flushed): the
+ * database says "queued" and nothing will ever start it. A job that is only waiting its turn is
+ * put on twice at worst, and the claim makes the second one a no-op.
  */
 export function recoverStaleTasks(
   db: AveroDatabase,
-  options: { staleAfterMs: number; maxAttempts: number },
+  options: { staleAfterMs: number; maxAttempts: number; lostJobAfterMs?: number },
 ): Promise<Recovery> {
   return db.transaction(async (tx) => {
     const cutoff = new Date(Date.now() - options.staleAfterMs);
@@ -396,7 +408,7 @@ export function recoverStaleTasks(
       .from(tasks)
       .where(and(inArray(tasks.status, ['running', 'cancelling']), lt(tasks.updatedAt, cutoff)))
       .for('update', { skipLocked: true });
-    const result: Recovery = { requeued: 0, failed: 0, cancelled: 0 };
+    const result: Recovery = { requeued: 0, failed: 0, cancelled: 0, republished: 0 };
     for (const task of stale) {
       if (task.status === 'cancelling') {
         await tx
@@ -422,6 +434,28 @@ export function recoverStaleTasks(
           })
           .where(eq(tasks.id, task.id));
         result.failed += 1;
+      }
+    }
+
+    if (options.lostJobAfterMs !== undefined) {
+      const lostCutoff = new Date(Date.now() - options.lostJobAfterMs);
+      const lost = await tx
+        .select({ id: tasks.id })
+        .from(tasks)
+        .where(
+          and(
+            eq(tasks.status, 'queued'),
+            sql`not exists (
+              select 1 from ${taskOutbox}
+              where ${taskOutbox.taskId} = ${tasks.id}
+                and (${taskOutbox.publishedAt} is null or ${taskOutbox.publishedAt} > ${lostCutoff.toISOString()}::timestamptz)
+            )`,
+          ),
+        )
+        .for('update', { skipLocked: true });
+      for (const task of lost) {
+        await tx.insert(taskOutbox).values({ taskId: task.id });
+        result.republished += 1;
       }
     }
     return result;

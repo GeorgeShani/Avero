@@ -1,3 +1,4 @@
+import process from 'node:process';
 import { randomUUID } from 'node:crypto';
 import { access } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -9,7 +10,7 @@ import {
   requestCancel,
   type AveroDatabase,
 } from '@avero/db';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { processTask } from '../processors/index.ts';
 import {
   fakeAgent,
@@ -123,6 +124,33 @@ describe.skipIf(!url)('running a task end to end', () => {
     expect(done).toMatchObject({ status: 'failed' });
     expect(done?.error).toContain('The model was unavailable.');
     expect(done?.runId).toMatch(/^run-/);
+  });
+
+  it('keeps a credential out of the task row and out of every log line when a run fails', async () => {
+    const token = ['ghp', '_', 'a'.repeat(36)].join('');
+    const lines: string[] = [];
+    const out = vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+      lines.push(String(chunk));
+      return true;
+    });
+    const err = vi.spyOn(process.stderr, 'write').mockImplementation((chunk) => {
+      lines.push(String(chunk));
+      return true;
+    });
+    try {
+      const repo = await makeGitRepo(root, 'leaky');
+      const { workspace, task } = await seedTask(db, { repoPath: repo, clerkUserId: clerkId });
+      await processTask(task.id, deps(fakeAgent({ fail: `Push rejected for ${token}` })));
+      const done = await getTask(db, workspace.id, task.id);
+      expect(done?.status).toBe('failed');
+      expect(done?.error).not.toContain(token);
+      expect(done?.error).toContain('Push rejected');
+    } finally {
+      out.mockRestore();
+      err.mockRestore();
+    }
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines.join('')).not.toContain(token);
   });
 
   it('refuses a repository outside the folders the worker may use, and never starts the agent', async () => {

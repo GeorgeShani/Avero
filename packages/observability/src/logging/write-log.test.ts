@@ -52,3 +52,15 @@ describe('writeLog', () => {
     expect(new Date(at).toISOString()).toBe(at);
   });
 });
+
+describe('writeLog safety net', () => {
+  it('replaces credential-shaped values and cuts long ones', () => {
+    const stdout = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
+    const token = ['ghp', '_', 'a'.repeat(36)].join('');
+    writeLog('info', 'x', { reason: `failed with ${token}`, long: 'b'.repeat(1000), count: 3 });
+    const line = JSON.parse(String(stdout.mock.calls[0]?.[0]));
+    expect(line.reason).toBe('failed with [redacted]');
+    expect(line.long).toHaveLength(300);
+    expect(line.count).toBe(3);
+  });
+});

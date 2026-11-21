@@ -55,6 +55,18 @@ try {
       assert(!dependencies.has(app), `Unexpected dependency ${name} → ${app}`);
     }
   }
+  // Every library carries the three tags the boundary rules read: where it may be used (scope),
+  // what it is (type) and where it can run (runtime). `nx g @avero/generators:package` sets them.
+  for (const [name, project] of Object.entries(graph.nodes)) {
+    if (!project.data.root.startsWith('packages/')) continue;
+    const { tags } = project.data;
+    for (const prefix of ['scope:', 'type:', 'runtime:']) {
+      assert(
+        tags.some((tag) => tag.startsWith(prefix)),
+        `${name} has no ${prefix}* tag`,
+      );
+    }
+  }
   console.log('Nx discovered the expected projects, targets, and workspace dependencies.');
 } finally {
   rmSync(graphFile, { force: true });

@@ -1,6 +1,7 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+  - 'tools/generators'
 
 overrides:
   # The Agent SDK's installed OpenTelemetry SDKs require an API version below 1.10.

@@ -1,5 +1,5 @@
 import { publishOutbox, recoverStaleTasks, type AveroDatabase } from '@avero/db';
-import { writeLog } from '@avero/observability';
+import { recordOutboxPublished, recordRecovery, writeLog } from '@avero/observability';
 import type { Queue } from 'bullmq';
 import { lifecyclePolicy } from '../lifecycle/policy.ts';
 import { enqueueTask, type TaskJob } from '../queues/index.ts';
@@ -33,6 +33,7 @@ export function startOutboxRelay(
 ) {
   return every('outbox', everyMs, async () => {
     const published = await publishOutbox(db, (item) => enqueueTask(queue, item));
+    recordOutboxPublished(published);
     if (published > 0) writeLog('info', 'outbox.published', { count: published });
   });
 }
@@ -40,14 +41,21 @@ export function startOutboxRelay(
 /** Settles tasks whose worker disappeared, now and on a timer. Returns a function that stops it. */
 export function startRecovery(
   db: AveroDatabase,
-  options: { everyMs?: number; staleAfterMs?: number; maxAttempts?: number } = {},
+  options: {
+    everyMs?: number;
+    staleAfterMs?: number;
+    maxAttempts?: number;
+    lostJobAfterMs?: number;
+  } = {},
 ) {
   return every('recovery', options.everyMs ?? lifecyclePolicy.recoveryMs, async () => {
     const result = await recoverStaleTasks(db, {
       staleAfterMs: options.staleAfterMs ?? lifecyclePolicy.staleAfterMs,
       maxAttempts: options.maxAttempts ?? lifecyclePolicy.maxAttempts,
+      lostJobAfterMs: options.lostJobAfterMs ?? lifecyclePolicy.lostJobAfterMs,
     });
-    if (result.requeued + result.failed + result.cancelled > 0) {
+    recordRecovery(result);
+    if (result.requeued + result.failed + result.cancelled + result.republished > 0) {
       writeLog('info', 'recovery.settled', result);
     }
   });

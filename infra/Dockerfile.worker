@@ -10,6 +10,9 @@ RUN --mount=type=cache,id=avero-pnpm,target=/pnpm/store pnpm --filter @avero/wor
 
 FROM node:24-bookworm-slim AS runtime
 WORKDIR /app
+# A task is run in a git worktree or a fresh clone, so the worker needs git (and the certificates
+# to clone over https).
+RUN apt-get update  && apt-get install -y --no-install-recommends git ca-certificates  && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production AVERO_WORKER_PORT=3101
 COPY --from=build --chown=node:node /deploy ./
 USER node

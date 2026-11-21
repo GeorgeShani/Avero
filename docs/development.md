@@ -19,15 +19,20 @@ The web app serves `http://localhost:3000`, the worker `http://127.0.0.1:3101/he
 
 Needs Clerk keys, `DATABASE_URL`, Redis and a Cursor key for the worker. Set these (see `.env.example`), start the web app and the worker, and open **Repositories** to add a folder, then **Tasks**.
 
-| Variable                                                                                                     | For                                                                                                      |
-| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `REDIS_URL`                                                                                                  | The task queue (the worker and the tests)                                                                |
-| `AVERO_REPOSITORY_ROOTS`                                                                                     | Folders the worker may use, separated by `;` on Windows and `:` elsewhere. Empty: no folder repositories |
-| `AVERO_WORKER_CONCURRENCY`, `AVERO_WORKER_SANDBOX`, `AVERO_WORKER_GUARD`                                     | Parallel tasks; Cursor's sandbox; the command guard (on by default)                                      |
-| `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_STATE_SECRET` | The GitHub App. All five, or GitHub stays off                                                            |
-| `AVERO_TEST_DATABASE_URL`, `AVERO_TEST_REDIS_URL`                                                            | Run the database and queue tests against real services; unset, they are skipped                          |
+| Variable                                                                                                     | For                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `REDIS_URL`                                                                                                  | The task queue (the worker and the tests)                                                                     |
+| `AVERO_REPOSITORY_ROOTS`                                                                                     | Folders the worker may use, separated by `;` on Windows and `:` elsewhere. Empty: no folder repositories      |
+| `AVERO_WORKER_CONCURRENCY`, `AVERO_WORKER_SANDBOX`, `AVERO_WORKER_GUARD`                                     | Parallel tasks; Cursor's sandbox; the command guard (on by default)                                           |
+| `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_STATE_SECRET` | The GitHub App. All five, or GitHub stays off                                                                 |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`                                                                                | Send traces and metrics from the web app and the worker to an OpenTelemetry collector; unset, nothing is sent |
+| `AVERO_TEST_DATABASE_URL`, `AVERO_TEST_REDIS_URL`                                                            | Run the database and queue tests against real services; unset, they are skipped                               |
 
 `node tools/scripts/e2e-task.mjs finish|cancel|guard` runs a real task end to end against the local services.
+
+## New library
+
+`pnpm exec nx g @avero/generators:package <name> --type=util --runtime=node` ([details](../tools/generators/README.md)).
 
 ## Everyday commands
 

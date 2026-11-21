@@ -1,0 +1,123 @@
+name: avero-prod
+
+# One host, everything in containers. For a managed PostgreSQL or Redis, delete those two services
+# and point DATABASE_URL and REDIS_URL at them. See docs/deployment.md.
+#
+#   AVERO_IMAGE_PREFIX=ghcr.io/georgeshani AVERO_VERSION=1.0.0 \
+#     docker compose --env-file .env.production -f infra/docker-compose.prod.yml up -d --wait
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: avero
+      POSTGRES_USER: avero
+      POSTGRES_PASSWORD: ${AVERO_POSTGRES_PASSWORD:?Set AVERO_POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    # Tasks wait in this queue: keep them (append-only file) and never evict them under memory pressure.
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # Applies pending migrations, then exits. The apps start only after it succeeded.
+  migrate:
+    image: ${AVERO_IMAGE_PREFIX:?Set AVERO_IMAGE_PREFIX}/avero-worker:${AVERO_VERSION}
+    command: ['node', 'node_modules/@avero/db/dist/migrate-cli.js']
+    environment:
+      DATABASE_URL: postgresql://avero:${AVERO_POSTGRES_PASSWORD}@postgres:5432/avero
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  web:
+    image: ${AVERO_IMAGE_PREFIX}/avero-web:${AVERO_VERSION}
+    restart: unless-stopped
+    ports:
+      - '${AVERO_WEB_PORT:-3000}:3000'
+    environment:
+      DATABASE_URL: postgresql://avero:${AVERO_POSTGRES_PASSWORD}@postgres:5432/avero
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:?Set the Clerk publishable key}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:?Set the Clerk secret key}
+      AVERO_APP_URL: ${AVERO_APP_URL:?Set the public URL of the app}
+      AVERO_REPOSITORY_ROOTS: ${AVERO_REPOSITORY_ROOTS:-}
+      GITHUB_APP_ID: ${GITHUB_APP_ID:-}
+      GITHUB_APP_SLUG: ${GITHUB_APP_SLUG:-}
+      GITHUB_APP_PRIVATE_KEY: ${GITHUB_APP_PRIVATE_KEY:-}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+      GITHUB_STATE_SECRET: ${GITHUB_STATE_SECRET:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    volumes:
+      # Only needed to register folder repositories: the web app checks the path exists where it
+      # runs, so it sees the same folder the worker uses, read-only.
+      - repositories:/srv/repos:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    image: ${AVERO_IMAGE_PREFIX}/avero-worker:${AVERO_VERSION}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://avero:${AVERO_POSTGRES_PASSWORD}@postgres:5432/avero
+      REDIS_URL: redis://redis:6379
+      CURSOR_API_KEY: ${CURSOR_API_KEY:?Set CURSOR_API_KEY because tasks run on the Cursor SDK}
+      AVERO_REPOSITORY_ROOTS: ${AVERO_REPOSITORY_ROOTS:-}
+      AVERO_WORKER_CONCURRENCY: ${AVERO_WORKER_CONCURRENCY:-2}
+      # Cursor's sandbox needs privileges a plain container does not have. Leave it off here and
+      # rely on the container itself (see docs/deployment.md), or run it on a host where it works.
+      AVERO_WORKER_SANDBOX: ${AVERO_WORKER_SANDBOX:-off}
+      AVERO_WORKER_GUARD: ${AVERO_WORKER_GUARD:-on}
+      GITHUB_APP_ID: ${GITHUB_APP_ID:-}
+      GITHUB_APP_SLUG: ${GITHUB_APP_SLUG:-}
+      GITHUB_APP_PRIVATE_KEY: ${GITHUB_APP_PRIVATE_KEY:-}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+      GITHUB_STATE_SECRET: ${GITHUB_STATE_SECRET:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    volumes:
+      - repositories:/srv/repos:ro
+    # The agent runs shell commands. Give it no extra privileges and no way to gain any.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  agent-service:
+    image: ${AVERO_IMAGE_PREFIX}/avero-agent-service:${AVERO_VERSION}
+    restart: unless-stopped
+    environment:
+      AVERO_AGENT_TOKEN: ${AVERO_AGENT_TOKEN:?Set AVERO_AGENT_TOKEN because the agent server refuses to start without it}
+      CURSOR_API_KEY: ${CURSOR_API_KEY:?Set CURSOR_API_KEY}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    volumes:
+      - agent-data:/data
+    # Not published: reach it from the other containers, or put a proxy with TLS in front.
+    expose:
+      - '3102'
+
+volumes:
+  postgres-data:
+  redis-data:
+  repositories:
+  agent-data:

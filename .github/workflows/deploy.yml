@@ -1,0 +1,116 @@
+name: Release
+
+# A version tag (v1.2.3) checks everything, builds the three images, publishes them to the GitHub
+# container registry and creates a release. Rolling a release out to a host is a separate step,
+# described in docs/deployment.md: this workflow does not know where you host.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: avero
+          POSTGRES_USER: avero
+          POSTGRES_PASSWORD: avero-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U avero -d avero"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      AVERO_TEST_DATABASE_URL: postgresql://avero:avero-ci@127.0.0.1:5432/avero
+      AVERO_TEST_REDIS_URL: redis://127.0.0.1:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply migrations to the test database
+        run: pnpm exec nx run @avero/db:db:migrate
+        env:
+          DATABASE_URL: ${{ env.AVERO_TEST_DATABASE_URL }}
+      - run: pnpm verify:workspace
+      - run: pnpm format:check
+      # A release checks everything, not only what changed since a base branch.
+      - name: Lint, typecheck, test and build
+        run: pnpm exec nx run-many -t lint typecheck test build --output-style=static
+
+  images:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { name: web, dockerfile: infra/Dockerfile.web }
+          - { name: worker, dockerfile: infra/Dockerfile.worker }
+          - { name: agent-service, dockerfile: infra/Dockerfile.agent-service }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/avero-${{ matrix.name }}
+          # v1.2.3 publishes 1.2.3 and 1.2 (and "latest" is not published: a deploy names its version).
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          flavor: latest=false
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  release:
+    needs: images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create the release, with the production compose file attached
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "$GITHUB_REF_NAME" infra/docker-compose.prod.yml --generate-notes --verify-tag

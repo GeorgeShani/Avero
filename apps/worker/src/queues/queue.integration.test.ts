@@ -125,4 +125,44 @@ describe.skipIf(!databaseUrl || !redisUrl)('the queue, the outbox and recovery',
       await queue.close();
     }
   });
+  it('runs a task whose job the queue lost, after recovery puts it back', async () => {
+    const repo = await makeGitRepo(root, 'lost-job');
+    const { workspace, task } = await seedTask(db, { repoPath: repo, clerkUserId: clerkId });
+    const queue = createTaskQueue(redis, queueName);
+    try {
+      // The job reaches the queue and the outbox row is marked published...
+      await publishOutbox(db, (item) => enqueueTask(queue, item));
+      // ...and then the queue loses it (Redis restarted without its data). Nothing is running.
+      await queue.obliterate({ force: true });
+      await db.execute(
+        sql`update task_outbox set published_at = now() - interval '1 hour' where task_id = ${task.id}`,
+      );
+      expect((await queue.getJobCounts('waiting', 'active', 'delayed')).waiting).toBe(0);
+      expect((await getTask(db, workspace.id, task.id))?.status).toBe('queued');
+
+      const recovery = await recoverStaleTasks(db, {
+        staleAfterMs: 60_000,
+        maxAttempts: 3,
+        lostJobAfterMs: 10 * 60_000,
+      });
+      expect(recovery.republished).toBeGreaterThanOrEqual(1);
+
+      const agent = fakeAgent();
+      const worker = start(agent);
+      try {
+        await publishOutbox(db, (item) => enqueueTask(queue, item));
+        const done = await until(
+          () => getTask(db, workspace.id, task.id),
+          (value) => value?.status === 'finished',
+        );
+        expect(done?.status).toBe('finished');
+        expect(done?.attempt).toBe(1);
+        expect(agent.seen.created).toBe(1);
+      } finally {
+        await worker.close();
+      }
+    } finally {
+      await queue.close();
+    }
+  });
 });

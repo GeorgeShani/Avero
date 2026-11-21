@@ -6,6 +6,11 @@ export const lifecyclePolicy = {
   heartbeatMs: 2_000,
   /** A running task not touched for this long belongs to a worker that is gone. */
   staleAfterMs: 30_000,
+  /**
+   * A task still queued this long after its job was put on the queue has probably lost the job
+   * (the queue's data was lost), so it is put on again. Longer than any normal wait for a worker.
+   */
+  lostJobAfterMs: 10 * 60_000,
   /** How many times a task is started before a lost worker makes it fail for good. */
   maxAttempts: 3,
   /** How often the outbox is moved to the queue, and stale tasks are looked for. */

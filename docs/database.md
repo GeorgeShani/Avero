@@ -40,6 +40,8 @@ pnpm exec nx run @avero/db:db:migrate    # applies pending migrations to DATABAS
 
 `DATABASE_URL` is read from the root `.env` (see `.env.example` for a local URL). Start the local server with `pnpm infra:up`, which also starts Redis.
 
+Production applies migrations with `node node_modules/@avero/db/dist/migrate-cli.js` (`runMigrations` in `src/migrate.ts`), which ships in the worker image: it applies what is pending and can be run on every deploy. `drizzle-kit` is a development tool and is not in the images.
+
 ## Tests
 
 Most database tests run against a real PostgreSQL, not a fake. Set `AVERO_TEST_DATABASE_URL` and they run; leave it unset and they are skipped. Locally:

@@ -183,4 +183,53 @@ describe.skipIf(!url)('tasks in the database', () => {
     const outbox = await db.select().from(taskOutbox).where(eq(taskOutbox.taskId, retry));
     expect(outbox.some((row) => row.publishedAt === null)).toBe(true);
   });
+  it('puts a queued task on the queue again when its job was lost, and only then', async () => {
+    await publishOutbox(db, async () => undefined, 1000);
+    const lost = await make();
+    const waiting = await make();
+    const unpublished = await make();
+    const running = await make();
+    await publishOutbox(db, async () => undefined, 1000);
+    await claimTask(db, running.id);
+    // `lost` and `running` were published an hour ago; `waiting` just now. `unpublished` gets a
+    // fresh outbox row that has not been published yet.
+    await db
+      .update(taskOutbox)
+      .set({ publishedAt: sql`now() - interval '1 hour'` })
+      .where(inArray(taskOutbox.taskId, [lost.id, running.id, unpublished.id]));
+    await db.insert(taskOutbox).values({ taskId: unpublished.id });
+
+    const result = await recoverStaleTasks(db, {
+      staleAfterMs: 60_000,
+      maxAttempts: 3,
+      lostJobAfterMs: 10 * 60_000,
+    });
+    expect(result.republished).toBe(1);
+    const rows = async (id: string) =>
+      db.select().from(taskOutbox).where(eq(taskOutbox.taskId, id));
+    expect((await rows(lost.id)).filter((row) => row.publishedAt === null)).toHaveLength(1);
+    expect(await rows(waiting.id)).toHaveLength(1);
+    expect(await rows(unpublished.id)).toHaveLength(2);
+    expect(await rows(running.id)).toHaveLength(1);
+
+    // A second pass does not pile up more rows for the same task.
+    const again = await recoverStaleTasks(db, {
+      staleAfterMs: 60_000,
+      maxAttempts: 3,
+      lostJobAfterMs: 10 * 60_000,
+    });
+    expect(again.republished).toBe(0);
+    expect(await rows(lost.id)).toHaveLength(2);
+  });
+
+  it('leaves queued tasks alone unless told how long a job may be lost', async () => {
+    const task = await make();
+    await publishOutbox(db, async () => undefined, 1000);
+    await db
+      .update(taskOutbox)
+      .set({ publishedAt: sql`now() - interval '1 day'` })
+      .where(eq(taskOutbox.taskId, task.id));
+    const result = await recoverStaleTasks(db, { staleAfterMs: 60_000, maxAttempts: 3 });
+    expect(result.republished).toBe(0);
+  });
 });

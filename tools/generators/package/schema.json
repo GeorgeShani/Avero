@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "AveroPackage",
+  "title": "Create a shared library",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The package's folder and name: lower-case words joined by dashes. `queue-tools` creates packages/queue-tools as @avero/queue-tools.",
+      "$default": { "$source": "argv", "index": 0 },
+      "x-prompt": "What is the package called?"
+    },
+    "type": {
+      "type": "string",
+      "description": "What the package is for. This decides which packages may import it.",
+      "enum": ["util", "contract", "data-access", "integration"],
+      "default": "util"
+    },
+    "runtime": {
+      "type": "string",
+      "description": "`node` for code that needs Node.js (files, processes, databases). `browser` for code that is safe to ship to a browser.",
+      "enum": ["node", "browser"],
+      "default": "node"
+    },
+    "dependencies": {
+      "type": "string",
+      "description": "Other workspace packages it uses, comma separated, for example `contracts,security`.",
+      "default": ""
+    },
+    "tests": {
+      "type": "boolean",
+      "description": "Set up Vitest and add a first test that checks the package loads.",
+      "default": true
+    }
+  },
+  "required": ["name"]
+}

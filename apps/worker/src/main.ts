@@ -2,13 +2,16 @@ import { createServer } from 'node:http';
 import process from 'node:process';
 import { readGithubSettings, readWorkerPort, readWorkerRuntime } from '@avero/config';
 import { connectDatabase } from '@avero/db';
-import { writeLog } from '@avero/observability';
+import { startTelemetry, writeLog } from '@avero/observability';
 import { Redis } from 'ioredis';
 import { healthResponse } from './health.ts';
 import { createGithubAccess } from './orchestration/github-access.ts';
 import { createTaskWorker } from './processors/index.ts';
 import { createTaskQueue } from './queues/index.ts';
 import { startOutboxRelay, startRecovery } from './recovery/index.ts';
+
+// Traces and metrics go to OTEL_EXPORTER_OTLP_ENDPOINT when it is set; otherwise this is inert.
+const telemetry = startTelemetry({ serviceName: 'avero-worker', environment: process.env });
 
 const host = '127.0.0.1';
 const port = readWorkerPort(process.env);
@@ -61,6 +64,7 @@ if (runtime) {
 } else {
   writeLog('info', 'worker.health_only');
 }
+if (telemetry.enabled) writeLog('info', 'worker.telemetry_on');
 
 let closing = false;
 function shutdown() {
@@ -69,7 +73,9 @@ function shutdown() {
   server.close();
   // Stop taking work first, then the loops, then the connections. A task still running is left
   // as it is: its heartbeat stops, and recovery puts it back in the queue.
-  void Promise.allSettled(stops.map((stop) => stop())).then(() => process.exit());
+  void Promise.allSettled(stops.map((stop) => stop()))
+    .then(() => telemetry.shutdown())
+    .then(() => process.exit());
 }
 
 process.once('SIGINT', shutdown);

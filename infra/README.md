@@ -18,11 +18,14 @@ Set the host ports and the development database password in the root `.env` if n
 
 ## Application images
 
-Use the workspace root as the build context for both images.
+Use the workspace root as the build context for all three images.
 
 ```shell
 docker build -f infra/Dockerfile.web -t avero-web .
 docker build -f infra/Dockerfile.worker -t avero-worker .
+docker build -f infra/Dockerfile.agent-service -t avero-agent-service .
 ```
 
-The web image runs Next.js standalone on port 3000. Inject the Clerk keys, `AVERO_APP_URL`, and a container-reachable `DATABASE_URL` at runtime to enable workspaces. The worker image starts the compiled Node.js process and probes its internal `/healthz` endpoint. Both images run as a non-root user.
+The web image runs Next.js standalone on port 3000. The worker image has `git`, starts the compiled Node.js process and probes its internal `/healthz`; it also carries the migrator (`node node_modules/@avero/db/dist/migrate-cli.js`). The agent-service image serves the Agent SDK project on port 3102 and refuses to start without `AVERO_AGENT_TOKEN`. All three run as a non-root user.
+
+`docker-compose.prod.yml` runs the three images with PostgreSQL and Redis on one host. Releases, configuration and rollback are in [docs/deployment.md](../docs/deployment.md).
