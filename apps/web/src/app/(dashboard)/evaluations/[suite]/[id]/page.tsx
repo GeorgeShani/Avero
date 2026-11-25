@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { BenchResultView } from '../../../../../features/bench/bench-result';
 import { HillclimbView } from '../../../../../features/bench/hillclimb-view';
 import { PageHead } from '../../../../../components/console/primitives';
+import { Crumb } from '../../../../../features/console-shell/crumb';
 import { loadResult } from '../../../../../server/bench';
 import { stamp } from '../../../../../lib/format';
 
@@ -20,6 +21,9 @@ export default async function ResultPage({
   const { suite, result, hillclimb } = loaded;
   return (
     <>
+      <Crumb
+        label={`${result ? 'Result' : 'Hillclimb'} ${stamp((result ?? hillclimb)?.startedAt ?? '')}`}
+      />
       <PageHead title={suite.id}>
         {result ? 'Result' : 'Hillclimb'} · {stamp((result ?? hillclimb)?.startedAt ?? '')} UTC
       </PageHead>

@@ -107,80 +107,82 @@ export function TasksView({
         </Note>
       )}
 
-      <Panel
-        title="Launch a task"
-        hint="An agent works on a copy of the repository; the repository itself is never touched"
-      >
-        {repositories.length === 0 ? (
-          <p data-dim>
-            No repository is registered for this workspace yet. An owner or admin can add one on the{' '}
-            <Link href="/repositories">Repositories</Link> page.
-          </p>
-        ) : (
-          <div data-stack>
-            <select
-              data-field
-              aria-label="Repository"
-              value={repositoryId}
-              onChange={(event) => setRepositoryId(event.target.value)}
-            >
-              {repositories.map((repository) => (
-                <option key={repository.id} value={repository.id}>
-                  {repository.name}
-                </option>
-              ))}
-            </select>
-            {agents.length > 0 && (
+      <div id="launch">
+        <Panel
+          title="Launch a task"
+          hint="An agent works on a copy of the repository; the repository itself is never touched"
+        >
+          {repositories.length === 0 ? (
+            <p data-dim>
+              No repository is registered for this workspace yet. An owner or admin can add one on
+              the <Link href="/repositories">Repositories</Link> page.
+            </p>
+          ) : (
+            <div data-stack>
               <select
                 data-field
-                aria-label="Agent"
-                value={agentId}
-                onChange={(event) => setAgentId(event.target.value)}
+                aria-label="Repository"
+                value={repositoryId}
+                onChange={(event) => setRepositoryId(event.target.value)}
               >
-                <option value="">Default agent</option>
-                {agents.map((agent) => (
-                  <option key={agent.id} value={agent.id}>
-                    {agent.name} ({agent.model})
+                {repositories.map((repository) => (
+                  <option key={repository.id} value={repository.id}>
+                    {repository.name}
                   </option>
                 ))}
               </select>
-            )}
-            <textarea
-              data-field
-              aria-label="What should the agent do?"
-              placeholder="What should the agent do?"
-              rows={3}
-              maxLength={8000}
-              value={prompt}
-              onChange={(event) => setPrompt(event.target.value)}
-            />
-            <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input
-                type="checkbox"
-                checked={review}
-                onChange={(event) => setReview(event.target.checked)}
-              />
-              Have an independent reviewer check the result
-            </label>
-            <div>
-              <button
-                type="button"
-                data-btn
-                data-primary
-                disabled={!canLaunch || prompt.trim() === ''}
-                onClick={() => void launch()}
-              >
-                Launch
-              </button>
-              {!canLaunch && (
-                <span data-dim style={{ marginLeft: 12 }}>
-                  Your role in this workspace cannot launch tasks.
-                </span>
+              {agents.length > 0 && (
+                <select
+                  data-field
+                  aria-label="Agent"
+                  value={agentId}
+                  onChange={(event) => setAgentId(event.target.value)}
+                >
+                  <option value="">Default agent</option>
+                  {agents.map((agent) => (
+                    <option key={agent.id} value={agent.id}>
+                      {agent.name} ({agent.model})
+                    </option>
+                  ))}
+                </select>
               )}
+              <textarea
+                data-field
+                aria-label="What should the agent do?"
+                placeholder="What should the agent do?"
+                rows={3}
+                maxLength={8000}
+                value={prompt}
+                onChange={(event) => setPrompt(event.target.value)}
+              />
+              <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={review}
+                  onChange={(event) => setReview(event.target.checked)}
+                />
+                Have an independent reviewer check the result
+              </label>
+              <div>
+                <button
+                  type="button"
+                  data-btn
+                  data-primary
+                  disabled={!canLaunch || prompt.trim() === ''}
+                  onClick={() => void launch()}
+                >
+                  Launch
+                </button>
+                {!canLaunch && (
+                  <span data-dim style={{ marginLeft: 12 }}>
+                    Your role in this workspace cannot launch tasks.
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </Panel>
+          )}
+        </Panel>
+      </div>
 
       <Panel title="Tasks" hint="Newest first" flush>
         {tasks.length === 0 ? (

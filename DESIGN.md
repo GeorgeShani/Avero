@@ -15,6 +15,8 @@ The world is warm bone paper with a dot-grid, molded off-white bodies, and black
 
 Direction change, 2026-11-18: this replaces the earlier flat "instrument-grade, not toy" direction. The user asked for the SPEC-01 components used in full and for an interface that is not static or dashboard-like.
 
+**Two surfaces, 2026-11-21.** The hardware skin now serves the landing page and the account pages (sign-in, sign-up). The console, where people do their work, is a separate flat, dense workbench with its own tokens and primitives (see [The console](#the-console)). The sections from here down to "The console" describe the hardware skin.
+
 **Key Characteristics:**
 
 - Real UI SDK behavior everywhere: keyboard, focus, ARIA and agent readiness come from the SDK.
@@ -33,7 +35,7 @@ The skin's palette is fixed by the kit (paper `#efefeb`, metal `#e2e2dd`, hairli
 
 **The Symbol-and-Word Rule.** Task status is never color alone. Every status badge carries a distinct shape and its label.
 
-**Open decision.** The skin is light only. The earlier commitment to full light and dark themes is not met, and dark mode is not designed.
+**Open decision.** The hardware skin is drawn light. Its dark theme is the whole panel inverted by a filter (`packages/ui/src/styles/dark.css`), which works but is not a designed dark palette. The console has a designed dark and light theme of its own.
 
 ## Typography
 
@@ -62,18 +64,40 @@ Rounded molded bodies, circular keys and dials, square-ish LCD and OLED screens.
 
 Vendored from the SPEC-01 registry into `packages/ui/src/primitives/` and owned by this repo. Avero adapts a few of them (text fields, stepper, wheel select, resizable and command palette accept props and change callbacks). Used today: Navbar, Device, Display, DPad, SlideSwitch, ModeDial, Segmented, ItemList, Lcd, Meter, BarGraph, Card, Tabs, CodeBlock, AlertDialog, CommandPalette, Toasts, Feed, Switch, Stepper, Select, TextField, Textarea, Button. Avero adds `TaskStatusBadge` and the brand marks.
 
+## The console
+
+The console is `apps/web/src/app/(dashboard)`. It is a tool people work in for hours, so it is flat, dense and quiet, and the brand lives in its details. It is deliberately unlike the hardware skin and does not use it.
+
+**Look.** Dark by default, with a light theme; the choice is stored in the browser (`avero-theme`: system, light or dark) and shared with the site. Everything is scoped to `[data-console]` in `apps/web/src/components/console/console.css`, with its own tokens (`--bg`, `--panel`, `--line`, `--text`, `--dim`, `--key`, `--warn`, `--bad`). The key color is the same mineral green as the skin: `oklch(0.78 0.14 163)` on dark, `oklch(0.5 0.1 163)` on light. Interface text is Hanken Grotesk; commands, ids and numbers are Red Hat Mono.
+
+**Parts.** The console's own primitives are in `components/console/`: `PageHead`, `Panel`, `Stat`, `Note`, `Empty`, `StatusTag`, `RiskTag`, `Term`, `SettingRow`, `CopyCommand`, `ConfirmButton` and toasts (`useToast`). Markup uses `data-*` attributes (`data-btn`, `data-field`, `data-items`, `data-tag`) rather than a second component library. Use them before writing new markup.
+
+**Frame.** A sidebar and a top bar. The sidebar's first control says where the console reads from: **This machine** (recordings in `.avero/`, needs nothing) or **Workspace** (a team's data, needs sign-in and a database). Nav items are grouped the same way, and a workspace item that cannot be used yet says why in a word beside it: Setup, Sign in, Create. A skip link, the Ctrl K palette and a mobile drawer are part of the frame. `loading.tsx`, `error.tsx` and `not-found.tsx` render inside it, so a failing page never takes the sidebar away.
+
+### Named Rules
+
+**The Honest Zero Rule.** A number on screen is real or the screen says it is not. If the recordings folder cannot be read, the sidebar says so instead of showing zeros.
+
+**The Say-What's-Missing Rule.** A page that cannot work does not look empty. It says what it needs in words someone who does not run the server can use, and links to Settings, whose "Server setup" panel lists each requirement as ready or missing and never shows a value.
+
+**The Word-For-The-Newcomer Rule.** Avero's own terms (review, evaluation, setup, hillclimb, worker) are defined where they first appear, through `Term` and `content/glossary.ts`. A command a person must run is shown with a Copy button.
+
+**The Undo-Or-Ask Rule.** Anything that cannot be undone asks first, in a dialog that says what will happen (`ConfirmButton`). Success is a toast; failure stays on the page.
+
 ## Do's and Don'ts
 
 ### Do:
 
-- **Do** use UI SDK components and the kit's `data-kit` parts before writing new markup.
-- **Do** make a screen respond to input and to time, and label anything simulated.
+- **Do** use UI SDK components and the kit's `data-kit` parts before writing new markup on the landing and account pages, and the console primitives before writing new markup in the console.
+- **Do** make a landing-page screen respond to input and to time, and label anything simulated.
 - **Do** keep status as shape plus word plus color.
 - **Do** name every control with a label or `aria-label`.
+- **Do** say, in the console, which of this machine and a workspace a page reads from.
 
 ### Don't:
 
-- **Don't** add a static grid of cards where a device or live readout would do.
+- **Don't** add a static grid of cards where a device or live readout would do on the landing page.
 - **Don't** add controls that do nothing; remove them instead.
 - **Don't** introduce a second key color or a second component library.
-- **Don't** present simulated runs as real activity.
+- **Don't** present simulated runs as real activity. The console shows only real data; the landing page's demos play a recorded example and say so.
+- **Don't** use the hardware skin inside the console, or console tokens outside it.

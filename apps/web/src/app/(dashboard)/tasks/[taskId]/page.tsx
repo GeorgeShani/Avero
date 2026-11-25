@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Note, PageHead, Panel, Stat } from '../../../../components/console/primitives';
+import { Crumb } from '../../../../features/console-shell/crumb';
 import { ReviewPanel } from '../../../../features/review/review-panel';
 import { RunView } from '../../../../features/runs/run-view';
 import { TaskActions } from '../../../../features/tasks/task-actions';
@@ -60,6 +61,7 @@ export default async function TaskPage({ params }: { params: Promise<{ taskId: s
 
   return (
     <>
+      <Crumb label={task.prompt} />
       <PageHead title={shorten(task.prompt, 90)} actions={<TaskStatusTag status={task.status} />}>
         <Link href="/tasks">← All tasks</Link> · launched {stamp(task.createdAt)} UTC
         {task.attempt > 1 ? ` · attempt ${task.attempt}` : ''}

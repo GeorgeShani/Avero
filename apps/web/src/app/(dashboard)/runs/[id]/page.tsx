@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { Crumb } from '../../../../features/console-shell/crumb';
 import { ReviewPanel } from '../../../../features/review/review-panel';
 import { RunView } from '../../../../features/runs/run-view';
 import { loadRun, viewerReadOnly } from '../../../../server/runs';
@@ -15,17 +16,20 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   const { record, verdict, decision } = loaded;
 
   return (
-    <RunView
-      loaded={loaded}
-      review={
-        <ReviewPanel
-          runId={record.started.runId}
-          verdict={verdict}
-          decision={decision}
-          readOnly={viewerReadOnly()}
-          decide={decideRun}
-        />
-      }
-    />
+    <>
+      <Crumb label={record.started.task} />
+      <RunView
+        loaded={loaded}
+        review={
+          <ReviewPanel
+            runId={record.started.runId}
+            verdict={verdict}
+            decision={decision}
+            readOnly={viewerReadOnly()}
+            decide={decideRun}
+          />
+        }
+      />
+    </>
   );
 }

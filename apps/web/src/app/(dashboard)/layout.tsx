@@ -2,19 +2,18 @@ import type { ReactNode } from 'react';
 import { ClerkBoundary } from '../../components/clerk-boundary';
 import { ConsoleShell } from '../../features/console-shell/shell';
 import { awaitingDecision } from '../../features/review/queue';
-import { loadSuites } from '../../server/bench';
-import { loadHostedState } from '../../server/console-context';
-import { loadRuns, viewerReadOnly } from '../../server/runs';
+import { loadHostedState, loadLocalData } from '../../server/console-context';
+import { viewerReadOnly } from '../../server/runs';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ConsoleLayout({ children }: { children: ReactNode }) {
-  const [{ runs, dir }, { suites }, hosted] = await Promise.all([
-    loadRuns(),
-    loadSuites(),
+  const [{ runs, dir, suites, failed }, hosted] = await Promise.all([
+    loadLocalData(),
     loadHostedState(),
   ]);
   const waiting = awaitingDecision(runs);
+
   return (
     <ClerkBoundary>
       <ConsoleShell
@@ -29,6 +28,9 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
           recent: runs.slice(0, 12).map((run) => ({ id: run.runId, task: run.task })),
           suiteIds: suites.map((suite) => suite.id),
           hosted,
+          notice: failed
+            ? 'Could not read the recordings folder, so the counts here may be missing.'
+            : undefined,
         }}
       >
         {children}

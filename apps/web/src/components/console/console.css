@@ -1687,3 +1687,127 @@ html[data-skin-theme='light'] [data-console] {
   align-self: start;
   justify-self: start;
 }
+
+/* Skip link --------------------------------------------------------------------------------- */
+
+[data-console] [data-skip] {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--key);
+  color: var(--key-ink);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+[data-console] [data-skip]:focus-visible {
+  transform: none;
+}
+
+[data-console] main[data-content]:focus {
+  outline: none;
+}
+
+/* A line in the sidebar saying part of it could not be read ---------------------------------- */
+
+[data-console] [data-notice] {
+  margin: 0 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 12px;
+}
+
+/* Toasts ------------------------------------------------------------------------------------- */
+
+[data-console] [data-toasts] {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: grid;
+  gap: 8px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+[data-console] [data-toast] {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  box-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.5);
+  pointer-events: auto;
+}
+
+[data-console] [data-toast] button {
+  border: 0;
+  background: transparent;
+  color: var(--dim);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+[data-console] [data-toast] button:hover {
+  color: var(--text);
+}
+
+/* Loading skeleton -------------------------------------------------------------------------- */
+
+[data-console] [data-skeleton] {
+  display: grid;
+  gap: 14px;
+}
+
+[data-console] [data-skel-row] {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+[data-console] [data-skel-line],
+[data-console] [data-skel-block] {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--panel) 25%, var(--panel-2) 50%, var(--panel) 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+
+[data-console] [data-skel-line] {
+  height: 16px;
+}
+
+[data-console] [data-skel-block] {
+  height: 88px;
+}
+
+@keyframes skeleton {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-console] [data-skel-line],
+  [data-console] [data-skel-block] {
+    animation: none;
+  }
+}
+
+/* Jump targets sit below the sticky top bar. */
+[data-console] [id='launch'] {
+  scroll-margin-top: 72px;
+}

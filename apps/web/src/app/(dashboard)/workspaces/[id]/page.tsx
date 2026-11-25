@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Note, PageHead, Panel } from '../../../../components/console/primitives';
+import { Crumb } from '../../../../features/console-shell/crumb';
 import { pickWorkspace } from '../../../../features/console-shell/workspace-pick';
 import { rememberedWorkspace } from '../../../../server/console-context';
 import {
@@ -40,6 +41,7 @@ export default async function WorkspacePage({
 
   return (
     <>
+      <Crumb label={workspace.name} />
       <PageHead
         title={workspace.name}
         actions={

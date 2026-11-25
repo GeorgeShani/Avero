@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { ConfirmButton } from '../../components/console/confirm-button';
 import { Note, Panel } from '../../components/console/primitives';
+import { useToast } from '../../components/console/toast';
 import { stamp } from '../../lib/format';
 import { call } from '../api-call';
 
@@ -34,11 +35,10 @@ export function RepositoriesView({
   const [name, setName] = useState('');
   const [path, setPath] = useState('');
   const [error, setError] = useState<string>();
-  const [saved, setSaved] = useState<string>();
+  const toast = useToast();
 
   const register = async () => {
     setError(undefined);
-    setSaved(undefined);
     const result = await call<Repository>(base, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -49,16 +49,15 @@ export function RepositoriesView({
     setRepositories((list) => [...list, added].sort((a, b) => a.name.localeCompare(b.name)));
     setName('');
     setPath('');
-    setSaved(`Added “${added.name}”. You can launch a task on it from Tasks.`);
+    toast(`Added “${added.name}”. You can launch a task on it from Tasks.`);
   };
 
   const remove = async (repository: Repository) => {
     setError(undefined);
-    setSaved(undefined);
     const result = await call<{ deleted: true }>(`${base}/${repository.id}`, { method: 'DELETE' });
     if (!result.ok) return setError(result.error);
     setRepositories((list) => list.filter((item) => item.id !== repository.id));
-    setSaved(`Removed “${repository.name}”.`);
+    toast(`Removed “${repository.name}”.`);
   };
 
   return (
@@ -68,7 +67,6 @@ export function RepositoriesView({
           {error}
         </Note>
       )}
-      {saved && <Note>{saved}</Note>}
 
       <Panel
         title="Repositories"

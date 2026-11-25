@@ -22,6 +22,8 @@ The first command lets an agent edit the folder, then saves a record to `.avero/
 
 On Windows the Cursor sandbox is not available, so add `--no-sandbox` and use a throwaway folder.
 
+The commands in the console's Copy buttons start with `pnpm avero`, which runs the CLI from this repository's source. If you installed Avero from npm, run the same command as `npx avero` instead.
+
 ## What you can do
 
 ```shell
@@ -48,6 +50,15 @@ npx avero bench hillclimb <suite> --repo . --model composer-2.5 --iterations 3 -
 
 Honest limits: a handful of tasks gives wide ranges, so a gap smaller than the range is not a result. A task is only fair when the commit message says what the tests check; read the suite before you trust it. Bench runs spend real Cursor usage, so set the caps. The setup is described in [docs/bench.md](docs/bench.md).
 
+## The console
+
+`pnpm avero console` opens a web console with two sides, and the sidebar says which one you are on.
+
+- **This machine** (Overview, Runs, Review, Evaluations) reads the recordings in `.avero/`. It needs nothing set up. On a first visit, Overview walks you from a Cursor key to a recorded run, a review and a decision.
+- **Team workspace** (Tasks, Repositories, Agents) lets a team launch agents on its repositories from the browser, watch them work and decide on the runs they record. It needs sign-in (Clerk), a database (PostgreSQL), a task queue (Redis) and a worker. A page that cannot work says what it needs, and Settings lists which of those a server is missing.
+
+The [development guide](docs/development.md) covers setting up the workspace side.
+
 ## Sharing
 
 `avero export` writes one HTML file with the replay, the diff and the verdict. Known secret formats are redacted, and the page carries no network access, but redaction cannot catch everything: read the file before you share it. See [docs/sharing.md](docs/sharing.md) for what is included, the Agent Trace mapping and the MCP tools.
@@ -68,7 +79,7 @@ node tools/scripts/make-demo-repo.mjs   # a small repository with a history, to 
 
 The repository is an Nx and pnpm workspace. [Architecture](docs/architecture.md) · [Development guide](docs/development.md) · [Product plan and progress](docs/product-plan.md) · [Cursor SDK setup and verification](docs/sdk-compatibility.md) · [Local infrastructure](infra/README.md)
 
-The web app also contains a workspaces feature (Clerk and PostgreSQL) that is separate from the recorder. The development guide covers setting it up.
+The workspace side of the console (Clerk, PostgreSQL, Redis and a worker) is optional. The development guide covers setting it up.
 
 ## License
 

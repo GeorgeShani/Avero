@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { ConfirmButton } from '../../components/console/confirm-button';
 import { CopyCommand } from '../../components/console/copy-command';
 import { Note, Panel, Term } from '../../components/console/primitives';
+import { useToast } from '../../components/console/toast';
 import { stamp } from '../../lib/format';
 import { call } from '../api-call';
 
@@ -73,13 +74,12 @@ export function AgentsView({
     rules: string;
   }>();
   const [error, setError] = useState<string>();
-  const [saved, setSaved] = useState<string>();
+  const toast = useToast();
 
   const sorted = (list: Agent[]) => [...list].sort((a, b) => a.name.localeCompare(b.name));
 
   const create = async () => {
     setError(undefined);
-    setSaved(undefined);
     const result = await call<Agent>(base, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -89,13 +89,12 @@ export function AgentsView({
     const added = result.data;
     setAgents((list) => sorted([...list, added]));
     setDraft({ name: '', model: defaultModel, rules: '' });
-    setSaved(`Created “${added.name}”.`);
+    toast(`Created “${added.name}”.`);
   };
 
   const save = async () => {
     if (!editing) return;
     setError(undefined);
-    setSaved(undefined);
     const { id, ...fields } = editing;
     const result = await call<Agent>(`${base}/${id}`, {
       method: 'PATCH',
@@ -106,16 +105,15 @@ export function AgentsView({
     const updated = result.data;
     setAgents((list) => sorted(list.map((item) => (item.id === id ? updated : item))));
     setEditing(undefined);
-    setSaved(`Saved “${updated.name}”. Tasks already launched keep the model they were given.`);
+    toast(`Saved “${updated.name}”. Tasks already launched keep the model they were given.`);
   };
 
   const remove = async (agent: Agent) => {
     setError(undefined);
-    setSaved(undefined);
     const result = await call<{ deleted: true }>(`${base}/${agent.id}`, { method: 'DELETE' });
     if (!result.ok) return setError(result.error);
     setAgents((list) => list.filter((item) => item.id !== agent.id));
-    setSaved(`Deleted “${agent.name}”.`);
+    toast(`Deleted “${agent.name}”.`);
   };
 
   return (
@@ -125,7 +123,6 @@ export function AgentsView({
           {error}
         </Note>
       )}
-      {saved && <Note>{saved}</Note>}
 
       <Panel
         title="Agents"
@@ -190,7 +187,6 @@ export function AgentsView({
                           type="button"
                           data-btn
                           onClick={() => {
-                            setSaved(undefined);
                             setEditing({
                               id: agent.id,
                               name: agent.name,

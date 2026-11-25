@@ -4,6 +4,7 @@ import { checkCounts, type Decision, type Verdict } from '@avero/contracts';
 import { useState, useTransition, type ReactNode } from 'react';
 import { CopyCommand } from '../../components/console/copy-command';
 import { Note, RiskTag, Term } from '../../components/console/primitives';
+import { useToast } from '../../components/console/toast';
 import { stamp } from '../../lib/format';
 import type { DecisionResult } from '../../server/decisions';
 
@@ -122,13 +123,15 @@ export function ReviewPanel({
   const [note, setNote] = useState(decision?.note ?? '');
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
+  const toast = useToast();
   const failing = verdict ? checkCounts(verdict).fail > 0 : false;
 
   const choose = (choice: Decision['decision']) => {
     setError(undefined);
     startTransition(async () => {
       const result = await decide(runId, choice, note);
-      if (!result.ok) setError(result.error);
+      if (result.ok) toast('Decision saved.');
+      else setError(result.error);
     });
   };
 

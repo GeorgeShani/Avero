@@ -4,13 +4,25 @@ import { Lockup } from '@avero/ui';
 import { UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type ReactNode,
+} from 'react';
 import { useThemeMode } from '../../hooks/use-theme-mode';
 import { nextMode, setMode, type ThemeMode } from '../../lib/theme';
 import { isCurrent, navigation } from '../../components/navigation';
 import { Icon } from '../../components/console/primitives';
+import { ToastProvider } from '../../components/console/toast';
 import { selectWorkspaceAction } from './actions';
+import { crumbs } from './crumbs';
+import { CrumbSetterContext } from './crumb';
 import { hostedBlocker, isWorkspacePath, type HostedState } from './hosted';
+import { buildTargets, type Target } from './targets';
 
 export type ShellData = {
   runs: number;
@@ -22,9 +34,9 @@ export type ShellData = {
   recent: { id: string; task: string }[];
   suiteIds: string[];
   hosted: HostedState;
+  /** Set when part of what the sidebar shows could not be read, so a zero is not mistaken for none. */
+  notice?: string;
 };
-
-type Target = { label: string; hint: string; href: string };
 
 const themeWords: Record<ThemeMode, string> = { system: 'System', light: 'Light', dark: 'Dark' };
 
@@ -49,12 +61,13 @@ function Palette({
   open,
   onClose,
   targets,
+  onChoose,
 }: {
   open: boolean;
   onClose: () => void;
   targets: Target[];
+  onChoose: (target: Target) => void;
 }) {
-  const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -82,7 +95,7 @@ function Palette({
   const go = (target: Target | undefined) => {
     if (!target) return;
     onClose();
-    router.push(target.href);
+    onChoose(target);
   };
 
   return (
@@ -97,7 +110,7 @@ function Palette({
     >
       <input
         value={query}
-        placeholder="Go to a page, run or suite…"
+        placeholder="Go to a page, run or suite, or do something…"
         aria-label="Search"
         onChange={(event) => {
           setQuery(event.target.value);
@@ -121,7 +134,7 @@ function Palette({
       ) : (
         <ul role="listbox" aria-label="Results">
           {shown.map((target, index) => (
-            <li key={target.href} role="presentation">
+            <li key={target.id} role="presentation">
               <button
                 type="button"
                 role="option"
@@ -201,27 +214,6 @@ function ContextSwitcher({ data, workspaceMode }: { data: ShellData; workspaceMo
   );
 }
 
-function crumbs(pathname: string): { label: string; href?: string }[] {
-  const [first, second, third] = pathname.split('/').filter(Boolean);
-  const names: Record<string, string> = {
-    overview: 'Overview',
-    tasks: 'Tasks',
-    runs: 'Runs',
-    review: 'Review',
-    evaluations: 'Evaluations',
-    repositories: 'Repositories',
-    agents: 'Agents',
-    activity: 'Activity',
-    settings: 'Settings',
-    workspaces: 'Workspaces',
-  };
-  if (!first) return [{ label: 'Overview' }];
-  const root = { label: names[first] ?? first, href: `/${first}` };
-  if (!second) return [{ label: root.label }];
-  if (!third) return [root, { label: second }];
-  return [root, { label: second, href: `/${first}/${second}` }, { label: third }];
-}
-
 /** The console's frame: sidebar, top bar and the go-to palette. */
 export function ConsoleShell({ data, children }: { data: ShellData; children: ReactNode }) {
   const pathname = usePathname();
@@ -229,6 +221,20 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
   const [openedOn, setOpenedOn] = useState<string>();
   const open = openedOn === pathname;
   const [palette, setPalette] = useState(false);
+  const router = useRouter();
+  const theme = useThemeMode();
+  const [labels, setLabels] = useState<Record<string, string>>({});
+
+  // Pages ending in an id register a readable name for their address (see Crumb).
+  const setLabel = useCallback((path: string, label: string | undefined) => {
+    setLabels((current) => {
+      if (label === undefined) {
+        if (!(path in current)) return current;
+        return Object.fromEntries(Object.entries(current).filter(([key]) => key !== path));
+      }
+      return current[path] === label ? current : { ...current, [path]: label };
+    });
+  }, []);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -242,24 +248,25 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
   }, []);
 
   const targets = useMemo<Target[]>(
-    () => [
-      ...navigation.flatMap((group) =>
-        group.items.map((item) => ({ label: item.label, hint: 'Page', href: item.href })),
-      ),
-      { label: 'Workspaces', hint: 'Page', href: '/workspaces' },
-      ...data.suiteIds.map((id) => ({
-        label: id,
-        hint: 'Evaluation suite',
-        href: `/evaluations/${id}`,
-      })),
-      ...data.recent.map((run) => ({
-        label: run.task.length > 70 ? `${run.task.slice(0, 70)}…` : run.task,
-        hint: run.id,
-        href: `/runs/${run.id}`,
-      })),
-    ],
-    [data.recent, data.suiteIds],
+    () =>
+      buildTargets({
+        pages: navigation.flatMap((group) =>
+          group.items.map((item) => ({ label: item.label, href: item.href })),
+        ),
+        suiteIds: data.suiteIds,
+        recent: data.recent,
+        hosted: data.hosted,
+        theme,
+      }),
+    [data.recent, data.suiteIds, data.hosted, theme],
   );
+
+  const choose = (target: Target) => {
+    const action = target.to;
+    if ('go' in action) router.push(action.go);
+    else if ('theme' in action) setMode(action.theme);
+    else void selectWorkspaceAction(action.workspace).then(() => router.push('/tasks'));
+  };
 
   const counts: Record<string, { value: number; alert?: boolean } | undefined> = {
     '/runs': data.runs > 0 ? { value: data.runs } : undefined,
@@ -272,118 +279,135 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
         : undefined,
   };
 
-  const trail = crumbs(pathname);
+  const trail = crumbs(pathname, labels);
   const workspaceMode = isWorkspacePath(pathname);
   const blocker = hostedBlocker(data.hosted);
 
   return (
     <div data-console>
-      <div data-frame data-open={open ? '' : undefined}>
-        <aside data-side aria-label="Console">
-          <div data-brand>
-            <Link href="/" aria-label="Avero home">
-              <Lockup />
-            </Link>
-          </div>
-
-          <ContextSwitcher data={data} workspaceMode={workspaceMode} />
-
-          <button type="button" data-search onClick={() => setPalette(true)}>
-            <Icon name="search" />
-            Go to…
-            <kbd>Ctrl K</kbd>
-          </button>
-
-          <nav aria-label="Primary" data-nav>
-            {navigation.map((group) => (
-              <div key={group.label} data-nav>
-                <p data-nav-label title={group.hint}>
-                  {group.label}
-                </p>
-                {group.items.map((item) => {
-                  const count = counts[item.href];
-                  const needs = item.workspace ? blocker : undefined;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      data-nav-item
-                      aria-current={isCurrent(pathname, item.href) ? 'page' : undefined}
-                    >
-                      <Icon name={item.icon} />
-                      {item.label}
-                      {needs ? <span data-state>{needs}</span> : null}
-                      {count && !needs ? (
-                        <span data-count data-alert={count.alert ? '' : undefined}>
-                          {count.value}
-                          <span data-sr>{count.alert ? ' to decide, some risky' : ''}</span>
-                        </span>
-                      ) : null}
-                    </Link>
-                  );
-                })}
+      <a href="#main" data-skip>
+        Skip to content
+      </a>
+      <CrumbSetterContext.Provider value={setLabel}>
+        <ToastProvider>
+          <div data-frame data-open={open ? '' : undefined}>
+            <aside data-side aria-label="Console">
+              <div data-brand>
+                <Link href="/" aria-label="Avero home">
+                  <Lockup />
+                </Link>
               </div>
-            ))}
-          </nav>
 
-          <div data-side-foot>
-            <div data-foot-row>
-              {data.hosted.status === 'signed-in' ? (
-                <>
-                  <span>Signed in</span>
-                  <UserButton />
-                </>
-              ) : data.hosted.status === 'signed-out' ? (
-                <>
-                  <span>Not signed in</span>
-                  <Link href="/sign-in" data-btn>
-                    Sign in
-                  </Link>
-                </>
-              ) : (
-                <span>Sign-in not set up</span>
-              )}
-            </div>
-            <ThemeKey />
-          </div>
-        </aside>
+              <ContextSwitcher data={data} workspaceMode={workspaceMode} />
+              {data.notice ? (
+                <p data-notice role="status">
+                  {data.notice}
+                </p>
+              ) : null}
 
-        <div data-main>
-          <header data-top>
-            <button
-              type="button"
-              data-btn
-              data-menu-btn
-              aria-label="Open the menu"
-              aria-expanded={open}
-              onClick={() => setOpenedOn(open ? undefined : pathname)}
-            >
-              <Icon name="menu" />
-            </button>
-            <nav aria-label="Breadcrumb" data-crumbs>
-              {trail.map((crumb, index) => (
-                <span key={`${crumb.label}-${index}`} style={{ display: 'contents' }}>
-                  {index > 0 ? <span aria-hidden="true">/</span> : null}
-                  {crumb.href ? (
-                    <Link href={crumb.href}>{crumb.label}</Link>
+              <button type="button" data-search onClick={() => setPalette(true)}>
+                <Icon name="search" />
+                Go to…
+                <kbd>Ctrl K</kbd>
+              </button>
+
+              <nav aria-label="Primary" data-nav>
+                {navigation.map((group) => (
+                  <div key={group.label} data-nav>
+                    <p data-nav-label title={group.hint}>
+                      {group.label}
+                    </p>
+                    {group.items.map((item) => {
+                      const count = counts[item.href];
+                      const needs = item.workspace ? blocker : undefined;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          data-nav-item
+                          aria-current={isCurrent(pathname, item.href) ? 'page' : undefined}
+                        >
+                          <Icon name={item.icon} />
+                          {item.label}
+                          {needs ? <span data-state>{needs}</span> : null}
+                          {count && !needs ? (
+                            <span data-count data-alert={count.alert ? '' : undefined}>
+                              {count.value}
+                              <span data-sr>{count.alert ? ' to decide, some risky' : ''}</span>
+                            </span>
+                          ) : null}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
+              </nav>
+
+              <div data-side-foot>
+                <div data-foot-row>
+                  {data.hosted.status === 'signed-in' ? (
+                    <>
+                      <span>Signed in</span>
+                      <UserButton />
+                    </>
+                  ) : data.hosted.status === 'signed-out' ? (
+                    <>
+                      <span>Not signed in</span>
+                      <Link href="/sign-in" data-btn>
+                        Sign in
+                      </Link>
+                    </>
                   ) : (
-                    <span aria-current="page">{crumb.label}</span>
+                    <span>Sign-in not set up</span>
                   )}
-                </span>
-              ))}
-            </nav>
-            <div data-top-actions>
-              <Link href="/" data-btn>
-                Website
-              </Link>
+                </div>
+                <ThemeKey />
+              </div>
+            </aside>
+
+            <div data-main>
+              <header data-top>
+                <button
+                  type="button"
+                  data-btn
+                  data-menu-btn
+                  aria-label="Open the menu"
+                  aria-expanded={open}
+                  onClick={() => setOpenedOn(open ? undefined : pathname)}
+                >
+                  <Icon name="menu" />
+                </button>
+                <nav aria-label="Breadcrumb" data-crumbs>
+                  {trail.map((crumb, index) => (
+                    <span key={`${crumb.label}-${index}`} style={{ display: 'contents' }}>
+                      {index > 0 ? <span aria-hidden="true">/</span> : null}
+                      {crumb.href ? (
+                        <Link href={crumb.href}>{crumb.label}</Link>
+                      ) : (
+                        <span aria-current="page">{crumb.label}</span>
+                      )}
+                    </span>
+                  ))}
+                </nav>
+                <div data-top-actions>
+                  <Link href="/" data-btn>
+                    Website
+                  </Link>
+                </div>
+              </header>
+              <main id="main" data-content tabIndex={-1}>
+                {children}
+              </main>
             </div>
-          </header>
-          <main id="main" data-content>
-            {children}
-          </main>
-        </div>
-      </div>
-      <Palette open={palette} onClose={() => setPalette(false)} targets={targets} />
+          </div>
+          <Palette
+            open={palette}
+            onClose={() => setPalette(false)}
+            targets={targets}
+            onChoose={choose}
+          />
+        </ToastProvider>
+      </CrumbSetterContext.Provider>
     </div>
   );
 }

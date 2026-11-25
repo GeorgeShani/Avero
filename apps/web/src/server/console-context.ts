@@ -7,6 +7,9 @@ import type { HostedState } from '../features/console-shell/hosted';
 import { pickWorkspace, workspaceCookie } from '../features/console-shell/workspace-pick';
 import { awaitingDecision } from '../features/review/queue';
 import { summarizeWorkspace, type WorkspaceSummary } from '../features/overview/workspace-summary';
+import { loadSuites } from './bench';
+import { loadRuns } from './runs';
+import { resolveRunsDir } from './runs-dir';
 import { workspaceRunSource } from './run-source';
 import { taskDeps } from './tasks';
 import { queryWorkspaces, workspaceSession } from './workspaces';
@@ -73,3 +76,26 @@ export const loadWorkspaceSummary = cache(
 export function loadWorkspaceRuns(workspace: { id: string; name: string }) {
   return runsOf(workspace.id, workspace.name);
 }
+
+/** A read that failed, as a value, so one unreadable folder cannot take the whole frame down. */
+const attempt = <T>(read: Promise<T>) =>
+  read.then(
+    (value) => ({ ok: true as const, value }),
+    () => ({ ok: false as const }),
+  );
+
+/**
+ * The recordings on this machine, for the sidebar. If the folder cannot be read the frame still
+ * draws, with nothing counted and `failed` set, so the shell can say the zeros are not real.
+ */
+export const loadLocalData = cache(async () => {
+  const [runsRead, suitesRead] = await Promise.all([attempt(loadRuns()), attempt(loadSuites())]);
+  const failed = !runsRead.ok || !suitesRead.ok;
+  if (failed) writeLog('error', 'console.local_read_failed');
+  return {
+    failed,
+    runs: runsRead.ok ? runsRead.value.runs : [],
+    dir: runsRead.ok ? runsRead.value.dir : resolveRunsDir(),
+    suites: suitesRead.ok ? suitesRead.value.suites : [],
+  };
+});
