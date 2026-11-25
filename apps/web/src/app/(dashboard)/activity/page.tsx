@@ -17,18 +17,12 @@ const words = {
   cancelled: { glyph: '■', word: 'Cancelled', tone: 'quiet' },
 } as const;
 
-export default async function ActivityPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ workspace?: string }>;
-}) {
+export default async function ActivityPage() {
   const page = await openWorkspacePage({
-    path: '/activity',
     title: 'Activity',
     intro: 'What the workspace’s agents have been doing, newest first.',
     needs:
       'Activity belongs to a workspace, so it needs Clerk (sign-in) and PostgreSQL. Neither is configured on this server.',
-    searchParams,
   });
   if (!page.open) return page.content;
 
@@ -37,7 +31,6 @@ export default async function ActivityPage({
   return (
     <>
       {page.head}
-      {page.switcher}
       <Note>
         This is built from the workspace&apos;s tasks. It does not yet record who did what, or
         changes people made to settings.
@@ -45,8 +38,7 @@ export default async function ActivityPage({
       <Panel title="Task activity" flush>
         {items.length === 0 ? (
           <Empty title="Nothing has happened yet.">
-            Launch a task on the <Link href={`/tasks?workspace=${page.workspace.id}`}>Tasks</Link>{' '}
-            page.
+            Launch a task on the <Link href="/tasks">Tasks</Link> page.
           </Empty>
         ) : (
           <ul data-items>

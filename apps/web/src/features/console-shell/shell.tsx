@@ -1,13 +1,16 @@
 'use client';
 
 import { Lockup } from '@avero/ui';
+import { UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from 'react';
 import { useThemeMode } from '../../hooks/use-theme-mode';
 import { nextMode, setMode, type ThemeMode } from '../../lib/theme';
 import { isCurrent, navigation } from '../../components/navigation';
 import { Icon } from '../../components/console/primitives';
+import { selectWorkspaceAction } from './actions';
+import { hostedBlocker, isWorkspacePath, type HostedState } from './hosted';
 
 export type ShellData = {
   runs: number;
@@ -18,6 +21,7 @@ export type ShellData = {
   readOnly: boolean;
   recent: { id: string; task: string }[];
   suiteIds: string[];
+  hosted: HostedState;
 };
 
 type Target = { label: string; hint: string; href: string };
@@ -136,10 +140,71 @@ function Palette({
   );
 }
 
+/**
+ * Says where the console is reading from, and lets the person switch. The two sources need very
+ * different things: files on this machine need nothing, a workspace needs sign-in and a database.
+ */
+function ContextSwitcher({ data, workspaceMode }: { data: ShellData; workspaceMode: boolean }) {
+  const [pending, start] = useTransition();
+  const { hosted } = data;
+
+  return (
+    <section data-context aria-label="Where the console reads from">
+      <div data-seg role="group" aria-label="Data source">
+        <Link href="/overview" aria-current={workspaceMode ? undefined : 'true'}>
+          This machine
+        </Link>
+        <Link href="/tasks" aria-current={workspaceMode ? 'true' : undefined}>
+          Workspace
+        </Link>
+      </div>
+
+      {!workspaceMode ? (
+        <p data-context-line>
+          <code title={data.dir}>{data.dir}</code>
+          {data.readOnly ? <span data-ro>read-only</span> : null}
+        </p>
+      ) : hosted.status === 'signed-in' && hosted.workspaces.length > 0 ? (
+        <div data-context-line>
+          <select
+            data-field
+            aria-label="Workspace"
+            value={hosted.selectedId}
+            disabled={pending}
+            onChange={(event) => {
+              const id = event.target.value;
+              start(async () => {
+                await selectWorkspaceAction(id);
+              });
+            }}
+          >
+            {hosted.workspaces.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+          <Link href="/workspaces">Manage</Link>
+        </div>
+      ) : hosted.status === 'signed-in' ? (
+        <p data-context-line>
+          No workspace yet. <Link href="/workspaces">Create one</Link>
+        </p>
+      ) : hosted.status === 'signed-out' ? (
+        <p data-context-line>
+          Not signed in. <Link href="/sign-in">Sign in</Link>
+        </p>
+      ) : (
+        <p data-context-line>Sign-in and a database are not set up on this server.</p>
+      )}
+    </section>
+  );
+}
+
 function crumbs(pathname: string): { label: string; href?: string }[] {
   const [first, second, third] = pathname.split('/').filter(Boolean);
   const names: Record<string, string> = {
-    overview: 'Desk',
+    overview: 'Overview',
     tasks: 'Tasks',
     runs: 'Runs',
     review: 'Review',
@@ -148,8 +213,9 @@ function crumbs(pathname: string): { label: string; href?: string }[] {
     agents: 'Agents',
     activity: 'Activity',
     settings: 'Settings',
+    workspaces: 'Workspaces',
   };
-  if (!first) return [{ label: 'Desk' }];
+  if (!first) return [{ label: 'Overview' }];
   const root = { label: names[first] ?? first, href: `/${first}` };
   if (!second) return [{ label: root.label }];
   if (!third) return [root, { label: second }];
@@ -180,6 +246,7 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
       ...navigation.flatMap((group) =>
         group.items.map((item) => ({ label: item.label, hint: 'Page', href: item.href })),
       ),
+      { label: 'Workspaces', hint: 'Page', href: '/workspaces' },
       ...data.suiteIds.map((id) => ({
         label: id,
         hint: 'Evaluation suite',
@@ -201,6 +268,8 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
   };
 
   const trail = crumbs(pathname);
+  const workspaceMode = isWorkspacePath(pathname);
+  const blocker = hostedBlocker(data.hosted);
 
   return (
     <div data-console>
@@ -210,8 +279,9 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
             <Link href="/" aria-label="Avero home">
               <Lockup />
             </Link>
-            <span data-tag-env>local</span>
           </div>
+
+          <ContextSwitcher data={data} workspaceMode={workspaceMode} />
 
           <button type="button" data-search onClick={() => setPalette(true)}>
             <Icon name="search" />
@@ -222,9 +292,12 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
           <nav aria-label="Primary" data-nav>
             {navigation.map((group) => (
               <div key={group.label} data-nav>
-                <p data-nav-label>{group.label}</p>
+                <p data-nav-label title={group.hint}>
+                  {group.label}
+                </p>
                 {group.items.map((item) => {
                   const count = counts[item.href];
+                  const needs = item.workspace ? blocker : undefined;
                   return (
                     <Link
                       key={item.href}
@@ -234,7 +307,8 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
                     >
                       <Icon name={item.icon} />
                       {item.label}
-                      {count ? (
+                      {needs ? <span data-state>{needs}</span> : null}
+                      {count && !needs ? (
                         <span data-count data-alert={count.alert ? '' : undefined}>
                           {count.value}
                           <span data-sr>{count.alert ? ' to decide, some risky' : ''}</span>
@@ -249,10 +323,22 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
 
           <div data-side-foot>
             <div data-foot-row>
-              <span>Reading</span>
-              {data.readOnly ? <span data-ro>read-only</span> : null}
+              {data.hosted.status === 'signed-in' ? (
+                <>
+                  <span>Signed in</span>
+                  <UserButton />
+                </>
+              ) : data.hosted.status === 'signed-out' ? (
+                <>
+                  <span>Not signed in</span>
+                  <Link href="/sign-in" data-btn>
+                    Sign in
+                  </Link>
+                </>
+              ) : (
+                <span>Sign-in not set up</span>
+              )}
             </div>
-            <code title={data.dir}>{data.dir}</code>
             <ThemeKey />
           </div>
         </aside>
@@ -283,7 +369,7 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
             </nav>
             <div data-top-actions>
               <Link href="/" data-btn>
-                Site
+                Website
               </Link>
             </div>
           </header>

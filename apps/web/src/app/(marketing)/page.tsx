@@ -14,8 +14,8 @@ const headline = ['See', 'what', 'your', 'coding', 'agents', 'actually', 'did.']
 const doors = [
   {
     href: '/overview',
-    title: 'Desk',
-    body: 'Totals, what needs your decision, the latest bench result',
+    title: 'Overview',
+    body: 'Totals, what needs your decision, the latest evaluation result',
   },
   { href: '/runs', title: 'Runs', body: 'Every recorded run, with its replay and diff' },
   { href: '/review', title: 'Review', body: 'Finished runs waiting for you, riskiest first' },

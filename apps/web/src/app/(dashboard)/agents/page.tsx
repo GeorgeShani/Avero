@@ -6,18 +6,12 @@ import { canManageAgents, taskDeps } from '../../../server/tasks';
 export const metadata: Metadata = { title: 'Agents' };
 export const dynamic = 'force-dynamic';
 
-export default async function AgentsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ workspace?: string }>;
-}) {
+export default async function AgentsPage() {
   const page = await openWorkspacePage({
-    path: '/agents',
     title: 'Agents',
     intro: 'Named setups for tasks: a model, and the rules it follows.',
     needs:
       'Agents belong to a workspace, so they need Clerk (sign-in) and PostgreSQL. Neither is configured on this server.',
-    searchParams,
   });
   if (!page.open) return page.content;
   const { workspace } = page;
@@ -26,7 +20,6 @@ export default async function AgentsPage({
   return (
     <>
       {page.head}
-      {page.switcher}
       <AgentsView
         key={workspace.id}
         workspaceId={workspace.id}

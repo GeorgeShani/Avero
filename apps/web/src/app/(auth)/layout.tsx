@@ -1,7 +1,7 @@
 import { Alert, Lockup, Navbar } from '@avero/ui';
-import { ClerkProvider } from '@clerk/nextjs';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { ClerkBoundary } from '../../components/clerk-boundary';
 import { SiteFrame } from '../../components/site-frame';
 import { ThemeSwitch } from '../../components/theme-switch';
 import { clerkSettings } from '../../server/workspaces';
@@ -38,9 +38,8 @@ function Frame({ children }: { children: ReactNode }) {
   );
 }
 
-export default function PlatformLayout({ children }: { children: ReactNode }) {
-  const settings = clerkSettings();
-  if (!settings)
+export default function AccountLayout({ children }: { children: ReactNode }) {
+  if (!clerkSettings())
     return (
       <Frame>
         <Alert tone="warning" title="Authentication setup required">
@@ -50,24 +49,8 @@ export default function PlatformLayout({ children }: { children: ReactNode }) {
     );
 
   return (
-    <ClerkProvider
-      publishableKey={settings.publishableKey}
-      signInUrl="/sign-in"
-      signUpUrl="/sign-up"
-      signInFallbackRedirectUrl="/workspaces"
-      signUpFallbackRedirectUrl="/workspaces"
-      appearance={{
-        variables: {
-          colorPrimary: '#1f7358',
-          colorForeground: '#1b1b19',
-          colorBackground: '#efefeb',
-          colorInput: '#ffffff',
-          borderRadius: '8px',
-          fontFamily: 'Red Hat Mono Variable, ui-monospace, monospace',
-        },
-      }}
-    >
+    <ClerkBoundary>
       <Frame>{children}</Frame>
-    </ClerkProvider>
+    </ClerkBoundary>
   );
 }

@@ -16,10 +16,10 @@ import { loadLatestBench } from '../../../server/bench';
 import { loadRuns } from '../../../server/runs';
 import { compact, seconds, stamp } from '../../../lib/format';
 
-export const metadata: Metadata = { title: 'Desk' };
+export const metadata: Metadata = { title: 'Overview' };
 export const dynamic = 'force-dynamic';
 
-export default async function DeskPage() {
+export default async function OverviewPage() {
   const [{ runs, problems, dir }, bench] = await Promise.all([loadRuns(), loadLatestBench()]);
   const stats = overviewStats(runs);
   const waiting = awaitingDecision(runs);
@@ -32,7 +32,7 @@ export default async function DeskPage() {
 
   return (
     <>
-      <PageHead title="Desk">
+      <PageHead title="Overview">
         What the agents did on this machine, what needs your decision, and how your setups compare.
         Everything here is read from files; nothing is simulated.
       </PageHead>

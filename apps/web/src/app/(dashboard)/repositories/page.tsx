@@ -7,19 +7,13 @@ import { canManageRepositories, taskDeps } from '../../../server/tasks';
 export const metadata: Metadata = { title: 'Repositories' };
 export const dynamic = 'force-dynamic';
 
-export default async function RepositoriesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ workspace?: string }>;
-}) {
+export default async function RepositoriesPage() {
   const page = await openWorkspacePage({
-    path: '/repositories',
     title: 'Repositories',
     intro:
       'Where tasks can run: folders on the worker’s machine, and repositories of a connected GitHub App.',
     needs:
       'Repositories belong to a workspace, so they need Clerk (sign-in) and PostgreSQL. Neither is configured on this server.',
-    searchParams,
   });
   if (!page.open) return page.content;
   const { workspace } = page;
@@ -28,7 +22,6 @@ export default async function RepositoriesPage({
   return (
     <>
       {page.head}
-      {page.switcher}
       <RepositoriesView
         key={workspace.id}
         workspaceId={workspace.id}

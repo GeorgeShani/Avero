@@ -140,7 +140,7 @@ export function TasksView({
         {repositories.length === 0 ? (
           <p data-dim>
             No repository is registered for this workspace yet. An owner or admin can add one on the{' '}
-            <Link href={`/repositories?workspace=${workspaceId}`}>Repositories</Link> page.
+            <Link href="/repositories">Repositories</Link> page.
           </p>
         ) : (
           <div data-stack>

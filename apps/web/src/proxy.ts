@@ -10,6 +10,12 @@ export default function proxy(request: NextRequest, event: NextFetchEvent) {
 
 export const config = {
   matcher: [
+    // The console's pages ask who is signed in (for the sidebar), so Clerk must see them too.
+    '/overview/:path*',
+    '/runs/:path*',
+    '/review/:path*',
+    '/evaluations/:path*',
+    '/settings/:path*',
     '/workspaces/:path*',
     '/tasks/:path*',
     '/repositories/:path*',
