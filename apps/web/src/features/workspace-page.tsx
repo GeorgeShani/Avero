@@ -17,6 +17,18 @@ type Options = {
 export type WorkspacePage =
   { open: false; content: ReactNode } | { open: true; workspace: Workspace; head: ReactNode };
 
+/** What a workspace page says it needs, in words a person who does not run the server can use. */
+export function setupNeeded(subject: string, extra?: string): ReactNode {
+  return (
+    <>
+      {subject} belong to a workspace, so they need sign-in (Clerk) and a database (PostgreSQL).
+      Neither is ready on this server.{extra ? ` ${extra}` : ''} Whoever runs this server can set
+      them up, and <Link href="/settings#setup">Settings lists what is missing</Link>. The pages
+      under “This machine” work without any of it.
+    </>
+  );
+}
+
 /** What a workspace page says when the server cannot show a workspace at all. */
 export function workspaceGate(status: 'unavailable' | 'signed-out', needs: ReactNode): ReactNode {
   if (status === 'unavailable') {

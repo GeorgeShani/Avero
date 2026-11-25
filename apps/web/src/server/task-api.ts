@@ -47,6 +47,16 @@ export type TaskDeps = {
     input: ReturnType<typeof agentCreateSchema.parse>,
   ) => Promise<Agent>;
   removeAgent: (workspaceId: string, agentId: string) => Promise<boolean>;
+  /** Throws when another agent in the workspace has the name; undefined when there is no such agent. */
+  updateAgent: (
+    workspaceId: string,
+    agentId: string,
+    input: ReturnType<typeof agentCreateSchema.parse>,
+  ) => Promise<Agent | undefined>;
+  removeRepository: (
+    workspaceId: string,
+    repositoryId: string,
+  ) => Promise<'removed' | 'not-found' | 'github' | 'in-use'>;
 };
 
 type Who = { userId: string; workspaceId: string };
@@ -97,6 +107,36 @@ export async function registerRepository(
     };
   } catch {
     return { status: 400, body: { error: 'A repository with that name already exists' } };
+  }
+}
+
+export async function deleteRepository(
+  deps: TaskDeps,
+  who: Who,
+  repositoryId: string,
+): Promise<ApiResult<{ deleted: true }>> {
+  const workspace = await member(deps, who);
+  if (!workspace) return notFound;
+  if (!canManageRepositories(workspace.role))
+    return { status: 403, body: { error: 'Only owners and admins can remove repositories' } };
+  const outcome = await deps.removeRepository(workspace.id, repositoryId);
+  switch (outcome) {
+    case 'removed':
+      return { status: 200, body: { deleted: true } };
+    case 'not-found':
+      return { status: 404, body: { error: 'Repository not found' } };
+    case 'github':
+      return {
+        status: 400,
+        body: {
+          error: 'This repository comes from the GitHub App. Remove it in GitHub’s settings',
+        },
+      };
+    case 'in-use':
+      return {
+        status: 400,
+        body: { error: 'Tasks have run on this repository, so removing it would delete them' },
+      };
   }
 }
 
@@ -173,6 +213,34 @@ export async function createAgentDefinition(
     };
   try {
     return { status: 201, body: await deps.addAgent(workspace.id, parsed.data) };
+  } catch {
+    return { status: 400, body: { error: 'An agent with that name already exists' } };
+  }
+}
+
+export async function updateAgentDefinition(
+  deps: TaskDeps,
+  who: Who,
+  agentId: string,
+  body: unknown,
+): Promise<ApiResult<Agent>> {
+  const workspace = await member(deps, who);
+  if (!workspace) return notFound;
+  if (!canManageAgents(workspace.role))
+    return { status: 403, body: { error: 'Only owners and admins can edit agents' } };
+  const parsed = agentCreateSchema.safeParse(body);
+  if (!parsed.success)
+    return {
+      status: 400,
+      body: {
+        error: 'Send { name, model, rules } as JSON, with rules up to 6000 characters',
+      },
+    };
+  try {
+    const updated = await deps.updateAgent(workspace.id, agentId, parsed.data);
+    return updated
+      ? { status: 200, body: updated }
+      : { status: 404, body: { error: 'Agent not found' } };
   } catch {
     return { status: 400, body: { error: 'An agent with that name already exists' } };
   }

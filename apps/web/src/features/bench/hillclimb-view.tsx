@@ -1,4 +1,6 @@
 import type { Hillclimb } from '@avero/contracts';
+import Link from 'next/link';
+import { CopyCommand } from '../../components/console/copy-command';
 import { Panel } from '../../components/console/primitives';
 import { stamp, tokens } from '../../lib/format';
 
@@ -45,9 +47,17 @@ export function HillclimbView({ climb }: { climb: Hillclimb }) {
         title="Best rules"
         hint="Copy these into your repository only if the gain holds up on a rerun."
       >
-        <pre data-rules data-mono>
-          {best?.rules || '(none)'}
-        </pre>
+        {best?.rules ? (
+          <div data-stack>
+            <CopyCommand command={best.rules} label="the best rules" />
+            <p data-dim>
+              To use them for tasks in a workspace, paste them into a new{' '}
+              <Link href="/agents">agent</Link>.
+            </p>
+          </div>
+        ) : (
+          <p data-dim>These iterations have no rules text.</p>
+        )}
       </Panel>
     </div>
   );

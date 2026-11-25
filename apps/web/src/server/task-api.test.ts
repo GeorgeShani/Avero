@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createAgentDefinition,
   deleteAgentDefinition,
+  deleteRepository,
   launchTask,
   readAgents,
   readTask,
@@ -10,6 +11,7 @@ import {
   registerRepository,
   stopTask,
   taskEventStream,
+  updateAgentDefinition,
   type TaskDeps,
 } from './task-api';
 
@@ -70,6 +72,12 @@ function deps(role: Workspace['role'] | undefined, overrides: Partial<TaskDeps> 
       createdAt: '2026-11-21T10:00:00.000Z',
     })),
     removeAgent: vi.fn().mockResolvedValue(true),
+    updateAgent: vi.fn(async (_id, id, input) => ({
+      id,
+      ...input,
+      createdAt: '2026-11-21T10:00:00.000Z',
+    })),
+    removeRepository: vi.fn().mockResolvedValue('removed'),
     ...overrides,
   };
 }
@@ -301,5 +309,77 @@ describe('agent definitions', () => {
     );
     const missing = deps('owner', { removeAgent: vi.fn().mockResolvedValue(false) });
     expect((await deleteAgentDefinition(missing, who, agentId)).status).toBe(404);
+  });
+});
+
+describe('editing an agent', () => {
+  const edit = { name: 'careful', model: 'composer-2.5', rules: 'Run the tests.' };
+
+  it('lets owners and admins change it, and no one else', async () => {
+    for (const role of ['owner', 'admin'] as const) {
+      const d = deps(role);
+      const result = await updateAgentDefinition(d, who, agentId, edit);
+      expect(result.status).toBe(200);
+      expect(d.updateAgent).toHaveBeenCalledWith(workspaceId, agentId, edit);
+    }
+    for (const role of ['member', 'viewer'] as const) {
+      const d = deps(role);
+      expect((await updateAgentDefinition(d, who, agentId, edit)).status).toBe(403);
+      expect(d.updateAgent).not.toHaveBeenCalled();
+    }
+  });
+
+  it('answers 404 to a non-member, a malformed body, a duplicate name and an unknown agent', async () => {
+    expect((await updateAgentDefinition(deps(undefined), who, agentId, edit)).status).toBe(404);
+    expect((await updateAgentDefinition(deps('owner'), who, agentId, { name: '' })).status).toBe(
+      400,
+    );
+    const duplicate = deps('owner', {
+      updateAgent: vi.fn().mockRejectedValue(new Error('unique')),
+    });
+    expect((await updateAgentDefinition(duplicate, who, agentId, edit)).status).toBe(400);
+    const missing = deps('owner', { updateAgent: vi.fn().mockResolvedValue(undefined) });
+    expect((await updateAgentDefinition(missing, who, agentId, edit)).status).toBe(404);
+  });
+});
+
+describe('removing a repository', () => {
+  it('lets owners and admins remove one, and no one else', async () => {
+    for (const role of ['owner', 'admin'] as const) {
+      const d = deps(role);
+      expect((await deleteRepository(d, who, repositoryId)).status).toBe(200);
+      expect(d.removeRepository).toHaveBeenCalledWith(workspaceId, repositoryId);
+    }
+    for (const role of ['member', 'viewer'] as const) {
+      const d = deps(role);
+      expect((await deleteRepository(d, who, repositoryId)).status).toBe(403);
+      expect(d.removeRepository).not.toHaveBeenCalled();
+    }
+  });
+
+  it('explains why a repository cannot be removed instead of deleting tasks', async () => {
+    const inUse = await deleteRepository(
+      deps('owner', { removeRepository: vi.fn().mockResolvedValue('in-use') }),
+      who,
+      repositoryId,
+    );
+    expect(inUse.status).toBe(400);
+    expect(JSON.stringify(inUse.body)).toContain('delete them');
+
+    const github = await deleteRepository(
+      deps('owner', { removeRepository: vi.fn().mockResolvedValue('github') }),
+      who,
+      repositoryId,
+    );
+    expect(github.status).toBe(400);
+    expect(JSON.stringify(github.body)).toContain('GitHub');
+
+    const missing = await deleteRepository(
+      deps('owner', { removeRepository: vi.fn().mockResolvedValue('not-found') }),
+      who,
+      repositoryId,
+    );
+    expect(missing.status).toBe(404);
+    expect((await deleteRepository(deps(undefined), who, repositoryId)).status).toBe(404);
   });
 });

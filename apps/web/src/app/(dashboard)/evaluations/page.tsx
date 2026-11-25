@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Empty, PageHead, Panel } from '../../../components/console/primitives';
+import { CopyCommand } from '../../../components/console/copy-command';
+import { Empty, PageHead, Panel, Term } from '../../../components/console/primitives';
 import { loadSuites } from '../../../server/bench';
 import { stamp } from '../../../lib/format';
 
@@ -12,16 +13,24 @@ export default async function BenchPage() {
   return (
     <>
       <PageHead title="Evaluations">
-        Tasks taken from your repository&apos;s own history, run under each setup you want to
-        compare. Every attempt is a recorded run.
+        An <Term k="evaluation">evaluation</Term> answers which model and rules work best on your
+        code. It takes a <Term k="suite">suite</Term> of tasks from your repository&apos;s own
+        history and runs each under every <Term k="setup">setup</Term> you want to compare. Every
+        attempt is a recorded run.
       </PageHead>
       {suites.length === 0 ? (
         <Panel title="No evaluation suites yet" hint={`Looking in ${dir}`}>
-          <Empty title="Build one from a repository's history, then run it.">
-            <pre data-cmd>
-              {`pnpm avero bench init --repo <your repository> --test "npm test"
-pnpm avero bench run <suite> --repo <your repository> --model composer-2.5 --rules AGENTS.md`}
-            </pre>
+          <Empty title="Build a suite from a repository's history, then run it.">
+            <span>First, build the suite:</span>
+            <CopyCommand
+              command={'pnpm avero bench init --repo <your repository> --test "npm test"'}
+            />
+            <span>Then run it under a setup:</span>
+            <CopyCommand
+              command={
+                'pnpm avero bench run <suite> --repo <your repository> --model composer-2.5 --rules AGENTS.md'
+              }
+            />
           </Empty>
         </Panel>
       ) : (

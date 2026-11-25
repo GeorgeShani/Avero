@@ -36,6 +36,24 @@ export async function listAgents(db: AveroDatabase, workspaceId: string): Promis
   return rows.map(toAgent);
 }
 
+/**
+ * Replaces an agent's name, model and rules. Tasks already launched keep the model they were given.
+ * Throws when another agent in the workspace has that name; undefined when there is no such agent.
+ */
+export async function updateAgent(
+  db: AveroDatabase,
+  workspaceId: string,
+  agentId: string,
+  input: AgentCreate,
+): Promise<Agent | undefined> {
+  const [row] = await db
+    .update(agents)
+    .set({ name: input.name, model: input.model, rules: input.rules })
+    .where(and(eq(agents.id, agentId), eq(agents.workspaceId, workspaceId)))
+    .returning();
+  return row ? toAgent(row) : undefined;
+}
+
 /** Removes a definition. Tasks that used it keep running and keep their record of the model. */
 export async function deleteAgent(
   db: AveroDatabase,

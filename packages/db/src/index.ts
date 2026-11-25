@@ -18,7 +18,7 @@ export {
   type InstallationRow,
   type RepositoryAccess,
 } from './github.ts';
-export { createAgent, deleteAgent, listAgents } from './agents.ts';
+export { createAgent, deleteAgent, listAgents, updateAgent } from './agents.ts';
 export {
   dbRunSource,
   saveBenchResult,
@@ -41,9 +41,11 @@ export {
   listTasks,
   publishOutbox,
   recoverStaleTasks,
+  removeRepository,
   repositoryFolder,
   requestCancel,
   type ClaimedTask,
   type Recovery,
+  type RepositoryRemoval,
 } from './tasks.ts';
 export type { AveroDatabase } from './client.ts';

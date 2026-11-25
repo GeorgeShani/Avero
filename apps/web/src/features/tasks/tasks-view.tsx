@@ -4,45 +4,16 @@ import {
   isTerminal,
   type Agent,
   type Repository,
+  type ReviewState,
   type Task,
   type TaskEvent,
 } from '@avero/contracts';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Note, Panel } from '../../components/console/primitives';
+import { Note, Panel, ReviewTags, Term } from '../../components/console/primitives';
 import { seconds, stamp } from '../../lib/format';
 import { call } from '../api-call';
-
-const statusWords: Record<Task['status'], { glyph: string; word: string; tone: string }> = {
-  queued: { glyph: '○', word: 'Queued', tone: 'quiet' },
-  running: { glyph: '◔', word: 'Running', tone: 'warn' },
-  cancelling: { glyph: '■', word: 'Stopping', tone: 'warn' },
-  finished: { glyph: '✓', word: 'Finished', tone: 'ok' },
-  failed: { glyph: '✕', word: 'Failed', tone: 'bad' },
-  cancelled: { glyph: '■', word: 'Cancelled', tone: 'quiet' },
-};
-
-function describeEvent(item: TaskEvent): string {
-  const event = item.event;
-  switch (event.type) {
-    case 'run.started':
-      return `Started ${event.model}`;
-    case 'assistant':
-      return event.text.replace(/\s+/g, ' ').slice(0, 160);
-    case 'tool':
-      return event.status === 'running'
-        ? `Running ${event.name}…`
-        : `${event.name} ${event.status}`;
-    case 'run.finished':
-      return `Ended: ${event.status.toLowerCase()}`;
-    case 'note':
-      return event.text;
-    case 'gate':
-      return `${event.kind} ${event.outcome}`;
-    default:
-      return '';
-  }
-}
+import { describeEvent, statusWords } from './task-status';
 
 /** Launch tasks, watch them run, and stop them. Talks to the workspace's task API. */
 export function TasksView({
@@ -50,12 +21,15 @@ export function TasksView({
   repositories,
   agents,
   initialTasks,
+  reviews,
   canLaunch,
 }: {
   workspaceId: string;
   repositories: Repository[];
   agents: Agent[];
   initialTasks: Task[];
+  /** What the reviewer and the person said about each task's run, by run id. */
+  reviews: Record<string, ReviewState>;
   canLaunch: boolean;
 }) {
   const base = `/api/v1/workspaces/${workspaceId}`;
@@ -211,7 +185,8 @@ export function TasksView({
       <Panel title="Tasks" hint="Newest first" flush>
         {tasks.length === 0 ? (
           <p data-dim style={{ padding: 16 }}>
-            Nothing has been launched yet.
+            Nothing has been launched yet. Write what you want done above and press Launch. A{' '}
+            <Term k="worker">worker</Term> picks it up and runs it.
           </p>
         ) : (
           <ul data-items>
@@ -233,16 +208,17 @@ export function TasksView({
                         ? ` · ${seconds(new Date(task.finishedAt).getTime() - new Date(task.startedAt).getTime())}`
                         : ''}
                     </span>
+                    {task.runId && reviews[task.runId] ? (
+                      <ReviewTags review={reviews[task.runId] as ReviewState} />
+                    ) : null}
                   </div>
                   <span style={{ display: 'flex', gap: 8, position: 'relative' }}>
                     <button type="button" data-btn onClick={() => follow(task)}>
                       Follow
                     </button>
-                    {task.runId && (
-                      <Link href={`/runs/${task.runId}`} data-btn>
-                        Open run
-                      </Link>
-                    )}
+                    <Link href={`/tasks/${task.id}`} data-btn>
+                      {task.runId ? 'Open run' : 'Details'}
+                    </Link>
                     {!isTerminal(task.status) && task.status !== 'cancelling' && canLaunch && (
                       <button type="button" data-btn data-danger onClick={() => void cancel(task)}>
                         Cancel

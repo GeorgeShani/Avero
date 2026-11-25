@@ -1,6 +1,7 @@
 import type { ReviewState, RunStatus } from '@avero/contracts';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { glossary, type GlossaryKey } from '../../content/glossary';
 import './console.css';
 
 const icons = {
@@ -126,6 +127,40 @@ export function Note({
     <div data-note data-tone={tone} role={tone ? 'alert' : undefined}>
       {title ? <strong>{title} </strong> : null}
       {children}
+    </div>
+  );
+}
+
+/**
+ * A word that needs explaining. It is focusable, so the definition is reachable by keyboard and
+ * touch as well as by hover, and it is read out after the word.
+ */
+export function Term({ k, children }: { k: GlossaryKey; children: ReactNode }) {
+  return (
+    <abbr data-term tabIndex={0} title={glossary[k]}>
+      {children}
+      <span data-sr> ({glossary[k]})</span>
+    </abbr>
+  );
+}
+
+/** One line of a settings panel: what it is, what it means, and its current value. */
+export function SettingRow({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div data-setting>
+      <div>
+        <strong>{label}</strong>
+        {hint ? <p>{hint}</p> : null}
+      </div>
+      <div data-setting-value>{children}</div>
     </div>
   );
 }

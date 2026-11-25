@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { RepositoriesView } from '../../../features/repositories/repositories-view';
-import { openWorkspacePage } from '../../../features/workspace-page';
+import { openWorkspacePage, setupNeeded } from '../../../features/workspace-page';
 import { githubSettings } from '../../../server/github';
 import { canManageRepositories, taskDeps } from '../../../server/tasks';
 
@@ -12,8 +12,7 @@ export default async function RepositoriesPage() {
     title: 'Repositories',
     intro:
       'Where tasks can run: folders on the worker’s machine, and repositories of a connected GitHub App.',
-    needs:
-      'Repositories belong to a workspace, so they need Clerk (sign-in) and PostgreSQL. Neither is configured on this server.',
+    needs: setupNeeded('Repositories'),
   });
   if (!page.open) return page.content;
   const { workspace } = page;

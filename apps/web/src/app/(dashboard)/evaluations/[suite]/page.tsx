@@ -1,7 +1,9 @@
+import { configMetrics } from '@avero/contracts';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Empty, PageHead, Panel } from '../../../../components/console/primitives';
+import { CopyCommand } from '../../../../components/console/copy-command';
+import { Empty, PageHead, Panel, Term } from '../../../../components/console/primitives';
 import { loadSuite } from '../../../../server/bench';
 import { stamp } from '../../../../lib/format';
 
@@ -17,14 +19,15 @@ export default async function SuitePage({ params }: { params: Promise<{ suite: s
     <>
       <PageHead title={suite.id}>
         {suite.tasks.length} task(s) from {suite.repo.name}. Tests run with{' '}
-        <code>{suite.testCommand}</code>. The agent never sees the tests; they are put back
-        afterwards and decide.
+        <code>{suite.testCommand}</code>. The agent never sees the tests: they are kept back while
+        it works, put back afterwards, and decide whether the task is{' '}
+        <Term k="resolved">resolved</Term>.
       </PageHead>
       <div data-grid="two">
         <Panel title="Results" hint="Newest first. Open one for the full matrix." flush>
           {results.length === 0 ? (
             <Empty title="No results yet.">
-              <pre data-cmd>{`pnpm avero bench run ${suite.id} --repo <your repository>`}</pre>
+              <CopyCommand command={`pnpm avero bench run ${suite.id} --repo <your repository>`} />
             </Empty>
           ) : (
             <ul data-items>
@@ -35,7 +38,12 @@ export default async function SuitePage({ params }: { params: Promise<{ suite: s
                       {stamp(result.startedAt)}
                     </Link>
                     <span data-item-meta>
-                      {result.configs.map((config) => config.label).join(' · ')}
+                      {result.configs
+                        .map((config) => {
+                          const metrics = configMetrics(result, config.id);
+                          return `${config.label} ${metrics.resolved}/${metrics.attempts} resolved`;
+                        })
+                        .join(' · ')}
                     </span>
                   </div>
                 </li>
@@ -43,12 +51,20 @@ export default async function SuitePage({ params }: { params: Promise<{ suite: s
             </ul>
           )}
         </Panel>
-        <Panel title="Hillclimbs" hint="Rules improved one measured change at a time" flush>
+        <Panel
+          title="Hillclimbs"
+          hint={
+            <>
+              A <Term k="hillclimb">hillclimb</Term> improves rules one measured change at a time
+            </>
+          }
+          flush
+        >
           {hillclimbs.length === 0 ? (
             <Empty title="None yet.">
-              <pre
-                data-cmd
-              >{`pnpm avero bench hillclimb ${suite.id} --repo <your repository> --holdout 1`}</pre>
+              <CopyCommand
+                command={`pnpm avero bench hillclimb ${suite.id} --repo <your repository> --holdout 1`}
+              />
             </Empty>
           ) : (
             <ul data-items>

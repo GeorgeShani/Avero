@@ -4,8 +4,10 @@ export type OverviewStats = {
   runs: number;
   running: number;
   finished: number;
-  /** Ended in an error, were cancelled or expired. */
+  /** Ended in an error. */
   failed: number;
+  /** Were cancelled or ran out of time: ended by a person or a limit, not by a fault. */
+  stopped: number;
   totalTokens: number;
   filesChanged: number;
   additions: number;
@@ -28,7 +30,8 @@ export function overviewStats(runs: readonly RunListItem[]): OverviewStats {
     runs: runs.length,
     running: runs.filter((run) => run.status === 'RUNNING').length,
     finished: finished.length,
-    failed: runs.filter((run) => run.status !== 'FINISHED' && run.status !== 'RUNNING').length,
+    failed: runs.filter((run) => run.status === 'ERROR').length,
+    stopped: runs.filter((run) => run.status === 'CANCELLED' || run.status === 'EXPIRED').length,
     totalTokens: runs.reduce((sum, run) => sum + run.totalTokens, 0),
     filesChanged: runs.reduce((sum, run) => sum + run.filesChanged, 0),
     additions: runs.reduce((sum, run) => sum + run.additions, 0),

@@ -1,10 +1,51 @@
 'use client';
 
 import type { Agent } from '@avero/contracts';
+import Link from 'next/link';
 import { useState } from 'react';
-import { Note, Panel } from '../../components/console/primitives';
+import { ConfirmButton } from '../../components/console/confirm-button';
+import { CopyCommand } from '../../components/console/copy-command';
+import { Note, Panel, Term } from '../../components/console/primitives';
 import { stamp } from '../../lib/format';
 import { call } from '../api-call';
+
+/** The fields of an agent, as a form. Used to create one and to change one. */
+function AgentFields({
+  value,
+  onChange,
+}: {
+  value: { name: string; model: string; rules: string };
+  onChange: (next: { name: string; model: string; rules: string }) => void;
+}) {
+  return (
+    <div data-stack>
+      <input
+        data-field
+        aria-label="Name"
+        placeholder="Name, for example careful"
+        maxLength={80}
+        value={value.name}
+        onChange={(event) => onChange({ ...value, name: event.target.value })}
+      />
+      <input
+        data-field
+        aria-label="Model"
+        placeholder="Model"
+        value={value.model}
+        onChange={(event) => onChange({ ...value, model: event.target.value })}
+      />
+      <textarea
+        data-field
+        aria-label="Rules"
+        placeholder="Rules the agent follows, as you would write them in AGENTS.md"
+        rows={6}
+        maxLength={6000}
+        value={value.rules}
+        onChange={(event) => onChange({ ...value, rules: event.target.value })}
+      />
+    </div>
+  );
+}
 
 /**
  * Agent definitions: a model and the rules text a task is run with. Pick one when launching a
@@ -24,30 +65,57 @@ export function AgentsView({
 }) {
   const base = `/api/v1/workspaces/${workspaceId}/agents`;
   const [agents, setAgents] = useState(initial);
-  const [name, setName] = useState('');
-  const [model, setModel] = useState(defaultModel);
-  const [rules, setRules] = useState('');
+  const [draft, setDraft] = useState({ name: '', model: defaultModel, rules: '' });
+  const [editing, setEditing] = useState<{
+    id: string;
+    name: string;
+    model: string;
+    rules: string;
+  }>();
   const [error, setError] = useState<string>();
+  const [saved, setSaved] = useState<string>();
+
+  const sorted = (list: Agent[]) => [...list].sort((a, b) => a.name.localeCompare(b.name));
 
   const create = async () => {
     setError(undefined);
+    setSaved(undefined);
     const result = await call<Agent>(base, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name, model, rules }),
+      body: JSON.stringify(draft),
     });
     if (!result.ok) return setError(result.error);
     const added = result.data;
-    setAgents((list) => [...list, added].sort((a, b) => a.name.localeCompare(b.name)));
-    setName('');
-    setRules('');
+    setAgents((list) => sorted([...list, added]));
+    setDraft({ name: '', model: defaultModel, rules: '' });
+    setSaved(`Created “${added.name}”.`);
+  };
+
+  const save = async () => {
+    if (!editing) return;
+    setError(undefined);
+    setSaved(undefined);
+    const { id, ...fields } = editing;
+    const result = await call<Agent>(`${base}/${id}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(fields),
+    });
+    if (!result.ok) return setError(result.error);
+    const updated = result.data;
+    setAgents((list) => sorted(list.map((item) => (item.id === id ? updated : item))));
+    setEditing(undefined);
+    setSaved(`Saved “${updated.name}”. Tasks already launched keep the model they were given.`);
   };
 
   const remove = async (agent: Agent) => {
     setError(undefined);
+    setSaved(undefined);
     const result = await call<{ deleted: true }>(`${base}/${agent.id}`, { method: 'DELETE' });
     if (!result.ok) return setError(result.error);
     setAgents((list) => list.filter((item) => item.id !== agent.id));
+    setSaved(`Deleted “${agent.name}”.`);
   };
 
   return (
@@ -57,37 +125,94 @@ export function AgentsView({
           {error}
         </Note>
       )}
+      {saved && <Note>{saved}</Note>}
 
       <Panel
         title="Agents"
-        hint="A task launched with an agent uses its model and follows its rules"
+        hint={
+          <>
+            A task launched with an <Term k="agent">agent</Term> uses its model and follows its
+            rules
+          </>
+        }
         flush
       >
         {agents.length === 0 ? (
           <p data-dim style={{ padding: 16 }}>
-            No agents yet. Tasks run with the server&apos;s default model and no extra rules.
+            No agents yet. Tasks run with the server&apos;s default model ({defaultModel}) and no
+            extra rules. Create an agent below to change that.
           </p>
         ) : (
           <ul data-items>
             {agents.map((agent) => (
               <li key={agent.id} style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
-                <div data-item-main>
-                  <span style={{ fontWeight: 500 }}>{agent.name}</span>
-                  <span data-item-meta>
-                    {agent.model} ·{' '}
-                    {agent.rules.trim() ? `${agent.rules.length} characters of rules` : 'no rules'}{' '}
-                    · added {stamp(agent.createdAt)}
-                  </span>
-                  {agent.rules.trim() && (
-                    <pre data-cmd style={{ maxHeight: 160, overflow: 'auto' }}>
-                      {agent.rules}
-                    </pre>
-                  )}
-                </div>
-                {canManage && (
-                  <button type="button" data-btn data-danger onClick={() => void remove(agent)}>
-                    Delete
-                  </button>
+                {editing?.id === agent.id ? (
+                  <>
+                    <div data-item-main>
+                      <AgentFields
+                        value={editing}
+                        onChange={(next) => setEditing({ id: agent.id, ...next })}
+                      />
+                    </div>
+                    <span style={{ display: 'flex', gap: 8, alignSelf: 'start' }}>
+                      <button
+                        type="button"
+                        data-btn
+                        data-primary
+                        disabled={editing.name.trim() === '' || editing.model.trim() === ''}
+                        onClick={() => void save()}
+                      >
+                        Save
+                      </button>
+                      <button type="button" data-btn onClick={() => setEditing(undefined)}>
+                        Cancel
+                      </button>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <div data-item-main>
+                      <span style={{ fontWeight: 500 }}>{agent.name}</span>
+                      <span data-item-meta>
+                        {agent.model} ·{' '}
+                        {agent.rules.trim()
+                          ? `${agent.rules.length} characters of rules`
+                          : 'no rules'}{' '}
+                        · added {stamp(agent.createdAt)}
+                      </span>
+                      {agent.rules.trim() && (
+                        <CopyCommand command={agent.rules} label={`Rules of ${agent.name}`} />
+                      )}
+                    </div>
+                    {canManage && (
+                      <span style={{ display: 'flex', gap: 8, alignSelf: 'start' }}>
+                        <button
+                          type="button"
+                          data-btn
+                          onClick={() => {
+                            setSaved(undefined);
+                            setEditing({
+                              id: agent.id,
+                              name: agent.name,
+                              model: agent.model,
+                              rules: agent.rules,
+                            });
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <ConfirmButton
+                          label="Delete"
+                          title={`Delete “${agent.name}”?`}
+                          confirmLabel="Delete agent"
+                          onConfirm={() => remove(agent)}
+                        >
+                          Tasks already launched with it keep running and keep their record of the
+                          model. New tasks can no longer choose it.
+                        </ConfirmButton>
+                      </span>
+                    )}
+                  </>
                 )}
               </li>
             ))}
@@ -97,42 +222,24 @@ export function AgentsView({
 
       <Panel
         title="New agent"
-        hint="Rules found by a hillclimb on the Evaluations page can be pasted here"
+        hint={
+          <>
+            Rules found by a <Term k="hillclimb">hillclimb</Term> on the{' '}
+            <Link href="/evaluations">Evaluations</Link> page can be pasted here
+          </>
+        }
       >
         {!canManage ? (
           <p data-dim>Only owners and admins can create agents.</p>
         ) : (
           <div data-stack>
-            <input
-              data-field
-              aria-label="Name"
-              placeholder="Name, for example careful"
-              maxLength={80}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-            <input
-              data-field
-              aria-label="Model"
-              placeholder="Model"
-              value={model}
-              onChange={(event) => setModel(event.target.value)}
-            />
-            <textarea
-              data-field
-              aria-label="Rules"
-              placeholder="Rules the agent follows, as you would write them in AGENTS.md"
-              rows={6}
-              maxLength={6000}
-              value={rules}
-              onChange={(event) => setRules(event.target.value)}
-            />
+            <AgentFields value={draft} onChange={setDraft} />
             <div>
               <button
                 type="button"
                 data-btn
                 data-primary
-                disabled={name.trim() === '' || model.trim() === ''}
+                disabled={draft.name.trim() === '' || draft.model.trim() === ''}
                 onClick={() => void create()}
               >
                 Create agent

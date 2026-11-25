@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { Empty, Note, PageHead, Panel } from '../../../components/console/primitives';
+import { CopyCommand } from '../../../components/console/copy-command';
+import { Empty, Note, PageHead, Panel, Term } from '../../../components/console/primitives';
 import { RunsExplorer } from '../../../features/runs/runs-explorer';
 import { loadRuns } from '../../../server/runs';
 
@@ -11,8 +12,8 @@ export default async function RunsPage() {
   return (
     <>
       <PageHead title="Runs">
-        Recordings of real agent runs, read from files on this machine. Open one to replay it and
-        review it.
+        Recordings of real agent <Term k="run">runs</Term>, read from files on this machine. Open
+        one to replay it, read its diff and decide.
       </PageHead>
       {problems.length > 0 && (
         <Note tone="warn" title={`${problems.length} file(s) could not be read as runs.`}>
@@ -23,9 +24,9 @@ export default async function RunsPage() {
         <Panel title="No runs yet" hint={`Looking in ${dir}`}>
           <Empty title="Record one with a Cursor agent.">
             <span>It edits the folder you point it at and saves everything it did.</span>
-            <pre data-cmd>
-              pnpm avero run &quot;fix the flaky retry test&quot; --cwd &lt;your repository&gt;
-            </pre>
+            <CopyCommand
+              command={'pnpm avero run "fix the flaky retry test" --cwd <your repository>'}
+            />
           </Empty>
         </Panel>
       ) : (

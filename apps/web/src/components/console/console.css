@@ -493,7 +493,7 @@ html[data-skin-theme='light'] [data-console] {
   line-height: 16px;
 }
 
-[data-console] [data-steps] {
+[data-console] [data-setup-steps] {
   display: grid;
   gap: 8px;
   margin: 0;
@@ -501,7 +501,7 @@ html[data-skin-theme='light'] [data-console] {
   color: var(--dim);
 }
 
-[data-console] [data-steps] a {
+[data-console] [data-setup-steps] a {
   color: var(--key);
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -1518,4 +1518,172 @@ html[data-skin-theme='light'] [data-console] {
   padding: 0;
   background: none;
   box-shadow: none;
+}
+
+/* A command with a copy button ------------------------------------------------------------- */
+
+[data-console] [data-copy] {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 100%;
+}
+
+[data-console] [data-copy] pre[data-cmd] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+[data-console] [data-copy] [data-btn] {
+  flex-shrink: 0;
+}
+
+/* A word with a definition ----------------------------------------------------------------- */
+
+[data-console] abbr[data-term] {
+  text-decoration: underline dotted var(--faint);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+/* A settings line --------------------------------------------------------------------------- */
+
+[data-console] [data-setting] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+[data-console] [data-setting]:last-child {
+  border-bottom: 0;
+}
+
+[data-console] [data-setting] strong {
+  font-weight: 500;
+}
+
+[data-console] [data-setting] p {
+  color: var(--dim);
+  font-size: 13px;
+}
+
+[data-console] [data-setting-value] {
+  min-width: 0;
+  text-align: right;
+}
+
+/* A checklist of steps ---------------------------------------------------------------------- */
+
+[data-console] [data-checklist] {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-console] [data-checklist] > li {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+[data-console] [data-checklist] > li:last-child {
+  border-bottom: 0;
+}
+
+[data-console] [data-checklist] > li[data-step='done'] [data-check-main] > strong {
+  color: var(--dim);
+  font-weight: 500;
+}
+
+[data-console] [data-check-main] {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+[data-console] [data-check-main] > p {
+  color: var(--dim);
+}
+
+[data-console] [data-check-main] [data-copy] {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  [data-console] [data-checklist] > li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Asking before something that cannot be undone ---------------------------------------------- */
+
+[data-console] dialog[data-confirm] {
+  width: min(440px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.6);
+}
+
+[data-console] dialog[data-confirm]::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+
+[data-console] dialog[data-confirm] h2 {
+  font-size: 16px;
+}
+
+[data-console] [data-confirm-body] {
+  margin-top: 8px;
+  color: var(--dim);
+}
+
+[data-console] [data-confirm-actions] {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* Tabs that are links ------------------------------------------------------------------------ */
+
+[data-console] [data-tabs] {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+[data-console] [data-tabs] a {
+  padding: 8px 12px;
+  border-bottom: 2px solid transparent;
+  color: var(--dim);
+  font-weight: 500;
+}
+
+[data-console] [data-tabs] a:hover {
+  color: var(--text);
+}
+
+[data-console] [data-tabs] a[aria-current='page'] {
+  border-bottom-color: var(--key);
+  color: var(--text);
+}
+
+[data-console] [data-copy] pre[data-cmd] {
+  max-height: 220px;
+  overflow: auto;
+}
+
+[data-console] [data-checklist] > li > [data-tag] {
+  align-self: start;
+  justify-self: start;
 }

@@ -12,7 +12,7 @@ import {
   type TaskSource,
   type TaskStatus,
 } from '@avero/contracts';
-import { and, asc, desc, eq, gt, inArray, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, isNull, lt, notExists, sql } from 'drizzle-orm';
 import type { AveroDatabase } from './client.ts';
 import { agents, repositories, taskEvents, taskOutbox, tasks, users } from './schema/index.ts';
 
@@ -69,6 +69,45 @@ export async function listRepositories(
     kind: row.kind,
     createdAt: row.createdAt.toISOString(),
   }));
+}
+
+export type RepositoryRemoval = 'removed' | 'not-found' | 'github' | 'in-use';
+
+/**
+ * Removes a registered folder. Only a folder nobody has run a task on: deleting a repository would
+ * delete its tasks with it, and a task is a record someone may still want. A GitHub repository
+ * belongs to the App's installation, so it is removed there, not here. One statement does the check
+ * and the delete, so a task launched at the same moment cannot be lost.
+ */
+export async function removeRepository(
+  db: AveroDatabase,
+  workspaceId: string,
+  repositoryId: string,
+): Promise<RepositoryRemoval> {
+  const deleted = await db
+    .delete(repositories)
+    .where(
+      and(
+        eq(repositories.id, repositoryId),
+        eq(repositories.workspaceId, workspaceId),
+        eq(repositories.kind, 'local'),
+        notExists(
+          db
+            .select({ one: sql`1` })
+            .from(tasks)
+            .where(eq(tasks.repositoryId, repositories.id)),
+        ),
+      ),
+    )
+    .returning({ id: repositories.id });
+  if (deleted.length > 0) return 'removed';
+
+  const [row] = await db
+    .select({ kind: repositories.kind })
+    .from(repositories)
+    .where(and(eq(repositories.id, repositoryId), eq(repositories.workspaceId, workspaceId)));
+  if (!row) return 'not-found';
+  return row.kind === 'local' ? 'in-use' : 'github';
 }
 
 /** The folder of a repository, for the worker only. */

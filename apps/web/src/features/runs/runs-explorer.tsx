@@ -1,35 +1,67 @@
 'use client';
 
 import type { RunListItem } from '@avero/contracts';
-import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { Empty } from '../../components/console/primitives';
 import { RunsTable } from './runs-table';
 
-type Show = 'all' | 'undecided' | 'failed';
+type Show = 'all' | 'undecided' | 'failed' | 'stopped';
 
 const choices: { id: Show; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'undecided', label: 'To decide' },
   { id: 'failed', label: 'Failed' },
+  { id: 'stopped', label: 'Stopped' },
 ];
 
-/** The runs list with a search box and two filters, all on the client: it holds a few hundred
- * rows at most, read from files. */
+const isShow = (value: string | null): value is Show =>
+  choices.some((choice) => choice.id === value);
+
+/** Whether a run belongs under a filter. "Stopped" is a person or a limit ending it, not a failure. */
+export function matchesShow(run: RunListItem, show: Show): boolean {
+  switch (show) {
+    case 'all':
+      return true;
+    case 'undecided':
+      return run.status === 'FINISHED' && !run.review.decision;
+    case 'failed':
+      return run.status === 'ERROR';
+    case 'stopped':
+      return run.status === 'CANCELLED' || run.status === 'EXPIRED';
+  }
+}
+
+/**
+ * The runs list with a search box and filters, all on the client: it holds a few hundred rows at
+ * most, read from files. The filter lives in the address, so a filtered list can be shared or
+ * come back after opening a run.
+ */
 export function RunsExplorer({ runs }: { runs: RunListItem[] }) {
-  const [query, setQuery] = useState('');
-  const [show, setShow] = useState<Show>('all');
+  const params = useSearchParams();
+  const [query, setQuery] = useState(params.get('q') ?? '');
+  const [show, setShow] = useState<Show>(
+    isShow(params.get('show')) ? (params.get('show') as Show) : 'all',
+  );
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (query.trim()) next.set('q', query);
+    if (show !== 'all') next.set('show', show);
+    const search = next.toString();
+    window.history.replaceState(null, '', search ? `?${search}` : window.location.pathname);
+  }, [query, show]);
 
   const shown = useMemo(() => {
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
     return runs.filter((run) => {
-      if (show === 'undecided' && !(run.status === 'FINISHED' && !run.review.decision))
-        return false;
-      if (show === 'failed' && (run.status === 'FINISHED' || run.status === 'RUNNING'))
-        return false;
+      if (!matchesShow(run, show)) return false;
       const haystack = `${run.task} ${run.model} ${run.runId}`.toLowerCase();
       return words.every((word) => haystack.includes(word));
     });
   }, [runs, query, show]);
+
+  const filtered = query.trim() !== '' || show !== 'all';
 
   return (
     <section data-panel>
@@ -58,7 +90,23 @@ export function RunsExplorer({ runs }: { runs: RunListItem[] }) {
       </div>
       {shown.length === 0 ? (
         <Empty title="No runs match.">
-          <span>Clear the filter to see all {runs.length} runs.</span>
+          <span>
+            {filtered
+              ? `Nothing among all ${runs.length} runs fits this filter.`
+              : 'There are no runs.'}
+          </span>
+          {filtered && (
+            <button
+              type="button"
+              data-btn
+              onClick={() => {
+                setQuery('');
+                setShow('all');
+              }}
+            >
+              Clear the filter
+            </button>
+          )}
         </Empty>
       ) : (
         <RunsTable runs={shown} />

@@ -1,10 +1,11 @@
 'use client';
 
 import { checkCounts, type Decision, type Verdict } from '@avero/contracts';
-import { useState, useTransition } from 'react';
-import { decideRun } from '../../app/(dashboard)/runs/[id]/actions';
-import { Note, RiskTag } from '../../components/console/primitives';
+import { useState, useTransition, type ReactNode } from 'react';
+import { CopyCommand } from '../../components/console/copy-command';
+import { Note, RiskTag, Term } from '../../components/console/primitives';
 import { stamp } from '../../lib/format';
+import type { DecisionResult } from '../../server/decisions';
 
 const marks = { pass: '✓', fail: '✕', unclear: '?' } as const;
 const words = { pass: 'Pass', fail: 'Fails', unclear: 'Unclear' } as const;
@@ -103,11 +104,20 @@ export function ReviewPanel({
   verdict,
   decision,
   readOnly,
+  readOnlyReason = 'This viewer is read-only, so decisions are turned off.',
+  decide,
+  noVerdict,
 }: {
   runId: string;
   verdict?: Verdict;
   decision?: Decision;
   readOnly: boolean;
+  /** Why decisions are off, shown under the buttons. */
+  readOnlyReason?: string;
+  /** Records the decision where this run lives: a folder on this machine, or a workspace. */
+  decide: (runId: string, decision: string, note: string) => Promise<DecisionResult>;
+  /** What to show when there is no review yet. */
+  noVerdict?: ReactNode;
 }) {
   const [note, setNote] = useState(decision?.note ?? '');
   const [error, setError] = useState<string>();
@@ -117,7 +127,7 @@ export function ReviewPanel({
   const choose = (choice: Decision['decision']) => {
     setError(undefined);
     startTransition(async () => {
-      const result = await decideRun(runId, choice, note);
+      const result = await decide(runId, choice, note);
       if (!result.ok) setError(result.error);
     });
   };
@@ -126,7 +136,9 @@ export function ReviewPanel({
     <section data-panel data-review>
       <div data-panel-head>
         <div>
-          <h2>Review</h2>
+          <h2>
+            <Term k="review">Review</Term>
+          </h2>
           <p>
             {verdict
               ? `By ${verdict.reviewer.model}, an AI reviewer · ${stamp(verdict.reviewer.reviewedAt)} UTC`
@@ -138,13 +150,15 @@ export function ReviewPanel({
         {verdict ? (
           <VerdictBody verdict={verdict} />
         ) : (
-          <div data-empty style={{ padding: 0 }}>
-            <p>
-              An independent agent reads the task, the diff and the commands, and checks them
-              against each other.
-            </p>
-            <pre data-cmd>{`pnpm avero verdict ${runId}`}</pre>
-          </div>
+          (noVerdict ?? (
+            <div data-empty style={{ padding: 0 }}>
+              <p>
+                An independent agent reads the task, the diff and the commands, and checks them
+                against each other.
+              </p>
+              <CopyCommand command={`pnpm avero verdict ${runId}`} />
+            </div>
+          ))
         )}
         {verdict ? (
           <p data-faint style={{ fontSize: 12, marginTop: 12 }}>
@@ -188,7 +202,7 @@ export function ReviewPanel({
           </div>
           {readOnly && (
             <p data-dim style={{ fontSize: 12 }}>
-              This viewer is read-only, so decisions are turned off.
+              {readOnlyReason}
             </p>
           )}
         </fieldset>

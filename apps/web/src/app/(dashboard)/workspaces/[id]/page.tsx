@@ -65,7 +65,7 @@ export default async function WorkspacePage({
         title="Set it up"
         hint={isCurrent ? 'These pages now show this workspace' : 'Use this workspace first'}
       >
-        <ol data-steps>
+        <ol data-setup-steps>
           <li>
             <Link href="/repositories">Add a repository</Link> so tasks have somewhere to run.
           </li>

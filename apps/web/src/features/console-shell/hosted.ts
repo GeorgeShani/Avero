@@ -10,6 +10,8 @@ export type HostedState =
       status: 'signed-in';
       workspaces: { id: string; name: string }[];
       selectedId?: string;
+      /** Finished runs in the selected workspace that nobody has decided on. */
+      toDecide: number;
     };
 
 /** Pages whose data belongs to a workspace. Every other console page reads this machine. */

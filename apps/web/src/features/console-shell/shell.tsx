@@ -265,6 +265,11 @@ export function ConsoleShell({ data, children }: { data: ShellData; children: Re
     '/runs': data.runs > 0 ? { value: data.runs } : undefined,
     '/review': data.toDecide > 0 ? { value: data.toDecide, alert: data.risky > 0 } : undefined,
     '/evaluations': data.suites > 0 ? { value: data.suites } : undefined,
+    // Workspace runs waiting for a decision, shown on Tasks where they are opened.
+    '/tasks':
+      data.hosted.status === 'signed-in' && data.hosted.toDecide > 0
+        ? { value: data.hosted.toDecide }
+        : undefined,
   };
 
   const trail = crumbs(pathname);

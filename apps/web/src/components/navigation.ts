@@ -30,7 +30,6 @@ export const navigation: NavGroup[] = [
     hint: 'Shared by a team, needs sign-in',
     items: [
       { href: '/tasks', label: 'Tasks', icon: 'tasks', workspace: true },
-      { href: '/activity', label: 'Activity', icon: 'activity', workspace: true },
       { href: '/repositories', label: 'Repositories', icon: 'repositories', workspace: true },
       { href: '/agents', label: 'Agents', icon: 'agents', workspace: true },
     ],

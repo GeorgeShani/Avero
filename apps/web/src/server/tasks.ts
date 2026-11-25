@@ -12,14 +12,21 @@ import {
   listRepositories,
   listTaskEvents,
   listTasks,
+  removeRepository,
   requestCancel,
+  updateAgent,
 } from '@avero/db';
-import { canLaunchTasks, canManageAgents, canManageRepositories } from '@avero/security';
+import {
+  canDecideRuns,
+  canLaunchTasks,
+  canManageAgents,
+  canManageRepositories,
+} from '@avero/security';
 import type { TaskDeps } from './task-api';
 import { workspaceApiSession, workspaceJson } from './workspace-api';
 import { database, queryWorkspace } from './workspaces';
 
-export { canLaunchTasks, canManageAgents, canManageRepositories };
+export { canDecideRuns, canLaunchTasks, canManageAgents, canManageRepositories };
 
 /** The task API's storage, backed by the database. */
 export function taskDeps(): TaskDeps {
@@ -41,6 +48,9 @@ export function taskDeps(): TaskDeps {
     listAgents: (workspaceId) => listAgents(db, workspaceId),
     addAgent: (workspaceId, input) => createAgent(db, workspaceId, input),
     removeAgent: (workspaceId, agentId) => deleteAgent(db, workspaceId, agentId),
+    updateAgent: (workspaceId, agentId, input) => updateAgent(db, workspaceId, agentId, input),
+    removeRepository: (workspaceId, repositoryId) =>
+      removeRepository(db, workspaceId, repositoryId),
   };
 }
 

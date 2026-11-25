@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { AgentsView } from '../../../features/agents/agents-view';
-import { openWorkspacePage } from '../../../features/workspace-page';
+import { openWorkspacePage, setupNeeded } from '../../../features/workspace-page';
 import { canManageAgents, taskDeps } from '../../../server/tasks';
 
 export const metadata: Metadata = { title: 'Agents' };
@@ -10,8 +10,7 @@ export default async function AgentsPage() {
   const page = await openWorkspacePage({
     title: 'Agents',
     intro: 'Named setups for tasks: a model, and the rules it follows.',
-    needs:
-      'Agents belong to a workspace, so they need Clerk (sign-in) and PostgreSQL. Neither is configured on this server.',
+    needs: setupNeeded('Agents'),
   });
   if (!page.open) return page.content;
   const { workspace } = page;

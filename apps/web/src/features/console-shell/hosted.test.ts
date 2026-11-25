@@ -18,12 +18,17 @@ describe('hostedBlocker', () => {
   it('names what stands between the person and a workspace page', () => {
     expect(hostedBlocker({ status: 'unavailable' })).toBe('Setup');
     expect(hostedBlocker({ status: 'signed-out' })).toBe('Sign in');
-    expect(hostedBlocker({ status: 'signed-in', workspaces: [] })).toBe('Create');
+    expect(hostedBlocker({ status: 'signed-in', workspaces: [], toDecide: 0 })).toBe('Create');
   });
 
   it('says nothing once a workspace exists', () => {
     expect(
-      hostedBlocker({ status: 'signed-in', workspaces: [{ id: 'a', name: 'A' }], selectedId: 'a' }),
+      hostedBlocker({
+        status: 'signed-in',
+        workspaces: [{ id: 'a', name: 'A' }],
+        selectedId: 'a',
+        toDecide: 0,
+      }),
     ).toBeUndefined();
   });
 });

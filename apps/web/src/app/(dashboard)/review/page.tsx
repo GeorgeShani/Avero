@@ -8,7 +8,9 @@ import {
   ReviewTags,
   RiskTag,
   StatusTag,
+  Term,
 } from '../../../components/console/primitives';
+import { CopyCommand } from '../../../components/console/copy-command';
 import { loadRuns } from '../../../server/runs';
 import { seconds, stamp } from '../../../lib/format';
 
@@ -24,9 +26,9 @@ export default async function ReviewPage() {
   return (
     <>
       <PageHead title="Review">
-        Finished runs wait here until you decide. An independent reviewer agent reads the task and
-        the diff and rates the risk; Avero checks its claims against the record; you approve,
-        request changes or reject.
+        Finished runs wait here until you make a <Term k="decision">decision</Term>. An independent
+        reviewer agent reads the task and the diff and rates the risk; Avero checks its claims
+        against the record; you approve, request changes or reject.
       </PageHead>
 
       <Panel
@@ -40,9 +42,8 @@ export default async function ReviewPage() {
       >
         {waiting.length === 0 ? (
           <Empty title="Nothing is waiting.">
-            <span>
-              Record a run, then run <code>pnpm avero verdict &lt;run-id&gt;</code> to get a review.
-            </span>
+            <span>Record a run, then ask for a review of it:</span>
+            <CopyCommand command="pnpm avero verdict <run-id>" />
           </Empty>
         ) : (
           <ul data-items>
@@ -76,7 +77,9 @@ export default async function ReviewPage() {
 
       <Panel title="Decided" hint="Newest first" flush>
         {decided.length === 0 ? (
-          <Empty title="No decisions yet." />
+          <Empty title="No decisions yet.">
+            <span>Open a run and approve it, ask for changes or reject it. It is listed here.</span>
+          </Empty>
         ) : (
           <ul data-items>
             {decided.map((run) => (

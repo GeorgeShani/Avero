@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Empty, Note, PageHead, Panel } from '../../../components/console/primitives';
 import { pickWorkspace } from '../../../features/console-shell/workspace-pick';
-import { workspaceGate } from '../../../features/workspace-page';
+import { setupNeeded, workspaceGate } from '../../../features/workspace-page';
 import { rememberedWorkspace } from '../../../server/console-context';
 import { queryWorkspaces, workspaceSession } from '../../../server/workspaces';
 import { chooseWorkspaceAction, createWorkspaceAction } from './actions';
@@ -26,10 +26,7 @@ export default async function WorkspacesPage({
     return (
       <>
         {head}
-        {workspaceGate(
-          'unavailable',
-          'Workspaces need Clerk (sign-in) and PostgreSQL, and neither is configured on this server. The pages under “This machine” work without them.',
-        )}
+        {workspaceGate('unavailable', setupNeeded('Workspaces'))}
       </>
     );
   }

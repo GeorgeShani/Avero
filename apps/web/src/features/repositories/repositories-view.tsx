@@ -1,7 +1,9 @@
 'use client';
 
 import type { Repository } from '@avero/contracts';
+import Link from 'next/link';
 import { useState } from 'react';
+import { ConfirmButton } from '../../components/console/confirm-button';
 import { Note, Panel } from '../../components/console/primitives';
 import { stamp } from '../../lib/format';
 import { call } from '../api-call';
@@ -27,14 +29,17 @@ export function RepositoriesView({
   /** Where to start installing the GitHub App; undefined when GitHub is not set up here. */
   githubConnectUrl: string | undefined;
 }) {
+  const base = `/api/v1/workspaces/${workspaceId}/repositories`;
   const [repositories, setRepositories] = useState(initial);
   const [name, setName] = useState('');
   const [path, setPath] = useState('');
   const [error, setError] = useState<string>();
+  const [saved, setSaved] = useState<string>();
 
   const register = async () => {
     setError(undefined);
-    const result = await call<Repository>(`/api/v1/workspaces/${workspaceId}/repositories`, {
+    setSaved(undefined);
+    const result = await call<Repository>(base, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ name, path }),
@@ -44,6 +49,16 @@ export function RepositoriesView({
     setRepositories((list) => [...list, added].sort((a, b) => a.name.localeCompare(b.name)));
     setName('');
     setPath('');
+    setSaved(`Added “${added.name}”. You can launch a task on it from Tasks.`);
+  };
+
+  const remove = async (repository: Repository) => {
+    setError(undefined);
+    setSaved(undefined);
+    const result = await call<{ deleted: true }>(`${base}/${repository.id}`, { method: 'DELETE' });
+    if (!result.ok) return setError(result.error);
+    setRepositories((list) => list.filter((item) => item.id !== repository.id));
+    setSaved(`Removed “${repository.name}”.`);
   };
 
   return (
@@ -53,6 +68,7 @@ export function RepositoriesView({
           {error}
         </Note>
       )}
+      {saved && <Note>{saved}</Note>}
 
       <Panel
         title="Repositories"
@@ -61,7 +77,7 @@ export function RepositoriesView({
       >
         {repositories.length === 0 ? (
           <p data-dim style={{ padding: 16 }}>
-            No repository is connected to this workspace yet.
+            No repository is connected to this workspace yet. Add a folder or connect GitHub below.
           </p>
         ) : (
           <ul data-items>
@@ -73,6 +89,22 @@ export function RepositoriesView({
                     {kindWords[repository.kind]} · added {stamp(repository.createdAt)}
                   </span>
                 </div>
+                <span style={{ display: 'flex', gap: 8 }}>
+                  <Link href="/tasks" data-btn>
+                    Launch a task
+                  </Link>
+                  {canManage && repository.kind === 'local' && (
+                    <ConfirmButton
+                      label="Remove"
+                      title={`Remove “${repository.name}”?`}
+                      confirmLabel="Remove repository"
+                      onConfirm={() => remove(repository)}
+                    >
+                      The folder itself is not touched. A repository that tasks have run on cannot
+                      be removed, because that would delete those tasks.
+                    </ConfirmButton>
+                  )}
+                </span>
               </li>
             ))}
           </ul>
@@ -93,8 +125,8 @@ export function RepositoriesView({
           )
         ) : (
           <p data-dim>
-            GitHub is not set up on this server. It needs the GitHub App&apos;s credentials in the
-            server&apos;s environment (see the development guide).
+            GitHub is not set up on this server. Whoever runs it needs to add the GitHub App&apos;s
+            credentials. <Link href="/settings#setup">See what is missing</Link>.
           </p>
         )}
       </Panel>
@@ -107,8 +139,9 @@ export function RepositoriesView({
           <p data-dim>Only owners and admins can add repositories.</p>
         ) : !canRegisterFolders ? (
           <p data-dim>
-            This server has no folders set up for repositories. Set{' '}
-            <code>AVERO_REPOSITORY_ROOTS</code> to the folders the worker may use.
+            This server has no folders set up for repositories. Whoever runs it sets{' '}
+            <code>AVERO_REPOSITORY_ROOTS</code> to the folders the worker may use.{' '}
+            <Link href="/settings#setup">See what is missing</Link>.
           </p>
         ) : (
           <div data-stack>

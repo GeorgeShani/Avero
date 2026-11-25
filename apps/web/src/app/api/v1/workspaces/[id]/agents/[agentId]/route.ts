@@ -1,9 +1,20 @@
 import { agentSchema } from '@avero/contracts';
-import { deleteAgentDefinition } from '../../../../../../../server/task-api';
-import { taskContext } from '../../../../../../../server/tasks';
+import { deleteAgentDefinition, updateAgentDefinition } from '../../../../../../../server/task-api';
+import { jsonBody, taskContext } from '../../../../../../../server/tasks';
 import { workspaceJson } from '../../../../../../../server/workspace-api';
 
 type Context = { params: Promise<{ id: string; agentId: string }> };
+
+export async function PATCH(request: Request, { params }: Context) {
+  const context = await taskContext(params);
+  if (context instanceof Response) return context;
+  const agentId = agentSchema.shape.id.safeParse((await params).agentId);
+  if (!agentId.success) return workspaceJson({ error: 'Agent not found' }, 404);
+  const body = await jsonBody(request);
+  if (body instanceof Response) return body;
+  const result = await updateAgentDefinition(context.deps, context.who, agentId.data, body);
+  return workspaceJson(result.body, result.status);
+}
 
 export async function DELETE(_request: Request, { params }: Context) {
   const context = await taskContext(params);
