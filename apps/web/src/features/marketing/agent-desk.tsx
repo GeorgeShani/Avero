@@ -152,7 +152,13 @@ export function AgentDesk() {
     <div ref={deskRef} data-mk="desk" data-agent-hidden="">
       <div data-mk="desk-main">
         <Display label="Autopilot · scripted agent, no model" aspect="auto">
-          <ol ref={tapeRef} data-mk="tape" aria-label="What the agent is doing" aria-live="polite">
+          <ol
+            ref={tapeRef}
+            data-mk="tape"
+            data-lenis-prevent=""
+            aria-label="What the agent is doing"
+            aria-live="polite"
+          >
             {lines.length === 0 && (
               <li data-kind="idle">
                 <span aria-hidden="true">◇</span>
@@ -192,7 +198,7 @@ export function AgentDesk() {
             <span>What an agent can read</span>
             <strong>{rows.length} controls</strong>
           </h3>
-          <ul data-mk="seen">
+          <ul data-mk="seen" data-lenis-prevent="">
             {rows.slice(0, 40).map((item) => (
               <li key={item.ref}>
                 <span>{item.label}</span>

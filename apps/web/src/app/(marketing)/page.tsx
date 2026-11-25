@@ -8,8 +8,9 @@ import { ReplayScope } from '../../features/marketing/replay-scope';
 import { Roadmap } from '../../features/marketing/roadmap';
 import { TypedLine } from '../../features/marketing/typed-line';
 import { VerdictDemo } from '../../features/marketing/verdict-demo';
+import { Words } from '../../features/marketing/words';
 
-const headline = ['See', 'what', 'your', 'coding', 'agents', 'actually', 'did.'];
+const headline = 'See what your coding agents actually did.';
 
 const doors = [
   {
@@ -98,11 +99,7 @@ export default function MarketingPage() {
         </p>
         <div data-mk="hero-top">
           <h1 id="hero-title" data-mk="headline">
-            {headline.map((word, index) => (
-              <span key={word + index} style={{ ['--i' as string]: index }}>
-                {word}
-              </span>
-            ))}
+            <Words text={headline} />
           </h1>
           <div data-mk="hero-side">
             <p data-mk="lede">
@@ -134,7 +131,9 @@ export default function MarketingPage() {
       <section id="verdict" data-mk="section" aria-labelledby="verdict-title">
         <Reveal data-head="">
           <p data-mk="kicker">02 · Verdict</p>
-          <h2 id="verdict-title">Review the evidence, not just the diff.</h2>
+          <h2 id="verdict-title">
+            <Words text="Review the evidence, not just the diff." />
+          </h2>
           <p data-mk="lede">
             Reviewing agent work means rebuilding the task from the code. An independent reviewer
             agent does that first, and Avero then checks the reviewer against the record: it drops
@@ -142,13 +141,17 @@ export default function MarketingPage() {
             You still decide.
           </p>
         </Reveal>
-        <VerdictDemo />
+        <Reveal>
+          <VerdictDemo />
+        </Reveal>
       </section>
 
       <section id="bench" data-mk="section" aria-labelledby="bench-title">
         <Reveal data-head="">
           <p data-mk="kicker">03 · Bench</p>
-          <h2 id="bench-title">Find the best setup for your repository, per dollar.</h2>
+          <h2 id="bench-title">
+            <Words text="Find the best setup for your repository, per dollar." />
+          </h2>
           <p data-mk="lede">
             Commits in your history that changed code and tests together become tasks. The agent
             never sees the tests; they are put back afterwards and decide. Avero runs every task
@@ -156,19 +159,23 @@ export default function MarketingPage() {
             included.
           </p>
         </Reveal>
-        <BenchDemo />
+        <Reveal>
+          <BenchDemo />
+        </Reveal>
       </section>
 
       <section data-mk="section" aria-labelledby="share-title">
         <Reveal data-head="">
           <p data-mk="kicker">04 · Share</p>
-          <h2 id="share-title">Send a replay, not a screenshot.</h2>
+          <h2 id="share-title">
+            <Words text="Send a replay, not a screenshot." />
+          </h2>
           <p data-mk="lede">
             Records are plain files on your machine. Turn one into a file a teammate can open, a
             trace another tool can read, or a tool your own agent can call.
           </p>
         </Reveal>
-        <Reveal delay={120}>
+        <Reveal stagger>
           <ul data-mk="ship" aria-label="What Avero can export">
             {shipped.map((item) => (
               <li key={item.title}>
@@ -188,14 +195,16 @@ export default function MarketingPage() {
       <section id="hosted" data-mk="section" aria-labelledby="hosted-title">
         <Reveal data-head="">
           <p data-mk="kicker">05 · Hosted</p>
-          <h2 id="hosted-title">Run agents for a team, from a browser.</h2>
+          <h2 id="hosted-title">
+            <Words text="Run agents for a team, from a browser." />
+          </h2>
           <p data-mk="lede">
             A workspace keeps repositories, agents and tasks for your team. Tasks wait in a queue
             and run on a worker you operate, in a copy of the repository, so the repository itself
             is never touched. Every task ends as the same recorded run you can replay and review.
           </p>
         </Reveal>
-        <Reveal delay={120}>
+        <Reveal stagger>
           <ul data-mk="ship" aria-label="What a workspace can do">
             {hosted.map((item) => (
               <li key={item.title}>
@@ -216,14 +225,18 @@ export default function MarketingPage() {
       <section id="agents" data-mk="section" aria-labelledby="agents-title">
         <Reveal data-head="">
           <p data-mk="kicker">06 · Agents</p>
-          <h2 id="agents-title">Built to be operated by agents, too.</h2>
+          <h2 id="agents-title">
+            <Words text="Built to be operated by agents, too." />
+          </h2>
           <p data-mk="lede">
             Every control on this page tells an agent what it is, what it holds and what it can do.
             There are no screenshots and no simulated clicks: the agent reads state and calls
             actions directly. Pick a task and watch it work the page above.
           </p>
         </Reveal>
-        <AgentDesk />
+        <Reveal>
+          <AgentDesk />
+        </Reveal>
         <p data-mk="aside">
           Shipped: <code>avero mcp</code> lets an agent list runs, read a verdict and search your
           recordings. Planned: starting a run and asking for your approval through the same tools.
@@ -233,14 +246,16 @@ export default function MarketingPage() {
       <section id="start" data-mk="section" aria-labelledby="start-title">
         <Reveal data-head="">
           <p data-mk="kicker">Try it</p>
-          <h2 id="start-title">Three commands, on your own machine.</h2>
+          <h2 id="start-title">
+            <Words text="Three commands, on your own machine." />
+          </h2>
           <p data-mk="lede">
             You need Node.js 24 or newer and a Cursor API key. Avero is not on npm yet, so run it
             from a checkout of this repository with <code>pnpm avero</code> in place of{' '}
             <code>avero</code>. Try it on a throwaway copy: the agent really edits files.
           </p>
         </Reveal>
-        <Reveal delay={120}>
+        <Reveal stagger>
           <ol data-mk="start">
             {start.map((item) => (
               <li key={item.step}>
@@ -255,7 +270,9 @@ export default function MarketingPage() {
       <section id="roadmap" data-mk="section" aria-labelledby="roadmap-title">
         <Reveal data-head="">
           <p data-mk="kicker">Roadmap</p>
-          <h2 id="roadmap-title">Where this is going, in order.</h2>
+          <h2 id="roadmap-title">
+            <Words text="Where this is going, in order." />
+          </h2>
           <p data-mk="lede">
             Local-first first: one command and one API key. Phases 0 to 4 are built and have been
             run on real agents. The hosted workspace and the release work are built and tested but
@@ -266,9 +283,11 @@ export default function MarketingPage() {
       </section>
 
       <section data-mk="closing" aria-labelledby="closing-title">
-        <div data-mk="closing-copy">
+        <Reveal data-closing="copy">
           <p data-mk="kicker">The console</p>
-          <h2 id="closing-title">Record a run, then replay it.</h2>
+          <h2 id="closing-title">
+            <Words text="Record a run, then replay it." />
+          </h2>
           <p data-mk="lede">
             Record a run with the command line, then open it here: the replay, the diff and the
             reviewer&apos;s verdict side by side, your decision, and the evaluation results. Those
@@ -278,18 +297,20 @@ export default function MarketingPage() {
           <Link data-kit="button" data-tone="primary" href="/overview">
             Open the console
           </Link>
-        </div>
-        <ul data-mk="doors" aria-label="Console screens">
-          {doors.map((door) => (
-            <li key={door.href}>
-              <Link data-mk="door" href={door.href}>
-                <strong>{door.title}</strong>
-                <span>{door.body}</span>
-                <i aria-hidden="true">→</i>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        </Reveal>
+        <Reveal stagger>
+          <ul data-mk="doors" aria-label="Console screens">
+            {doors.map((door) => (
+              <li key={door.href}>
+                <Link data-mk="door" href={door.href}>
+                  <strong>{door.title}</strong>
+                  <span>{door.body}</span>
+                  <i aria-hidden="true">→</i>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
       </section>
     </>
   );

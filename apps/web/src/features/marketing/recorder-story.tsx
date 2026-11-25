@@ -1,9 +1,12 @@
 'use client';
 
 import { Display, Lcd, LcdDigits } from '@avero/ui';
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import type { RecordLine } from './example';
 import { useScrollProgress } from './hooks';
+import { stepFor } from './motion';
+import { Reveal } from './reveal';
+import { Words } from './words';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 
 const beats = [
@@ -24,18 +27,30 @@ const beats = [
 /** Scroll-driven: the record writes itself as you scroll through the section. */
 export function RecorderStory({ lines }: { lines: readonly RecordLine[] }) {
   const ref = useRef<HTMLElement>(null);
-  const progress = useScrollProgress(ref);
   const reduced = useReducedMotion();
   const total = lines.length;
-  const shown = reduced ? total : Math.min(total, Math.floor(progress * (total + 2)));
-  const beat = reduced ? 0 : Math.min(beats.length - 1, Math.floor(progress * beats.length));
+  // How many lines are written is the only thing the scroll decides, so the section re-renders
+  // when a line is added, not on every frame of the scroll. Two extra divisions at the end let the
+  // last line sit on screen a moment before the section lets go.
+  const written = useScrollProgress(
+    ref,
+    useCallback((progress: number) => stepFor(progress, total + 2, total), [total]),
+  );
+  const shown = reduced ? total : written;
+  const beat = reduced
+    ? 0
+    : Math.min(beats.length - 1, Math.floor((written / (total + 2)) * beats.length));
 
   return (
     <section ref={ref} id="recorder" data-mk="story" aria-labelledby="recorder-title">
       <div data-mk="story-sticky">
         <div data-mk="story-copy">
-          <p data-mk="kicker">01 · Recorder</p>
-          <h2 id="recorder-title">One run in, a complete record out.</h2>
+          <Reveal data-head="">
+            <p data-mk="kicker">01 · Recorder</p>
+            <h2 id="recorder-title">
+              <Words text="One run in, a complete record out." />
+            </h2>
+          </Reveal>
           <ol data-mk="beats">
             {beats.map((item, index) => (
               <li key={item.title} data-on={index === beat || reduced ? '' : undefined}>

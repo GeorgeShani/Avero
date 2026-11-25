@@ -1,13 +1,34 @@
 import { Lockup, Navbar } from '@avero/ui';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { SmoothScroll } from '../../features/marketing/smooth-scroll';
 import { SiteFrame } from '../../components/site-frame';
 import { ThemeSwitch } from '../../components/theme-switch';
 import './marketing.css';
 
+/**
+ * Without script nothing can mark a block as seen, so the entrance animations would leave it
+ * hidden. This shows everything in its final place for anyone running without JavaScript.
+ */
+const withoutScript = `
+[data-mk='reveal'],
+[data-mk='reveal'] [data-mk='wi'],
+[data-mk='reveal'][data-stagger] :is(li, [data-mk='phase']),
+[data-mk='reveal'][data-head] > :not(h2) {
+  opacity: 1 !important;
+  translate: none !important;
+  transition: none !important;
+}
+`;
+
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   return (
     <SiteFrame>
+      <SmoothScroll />
+      <noscript>
+        <style>{withoutScript}</style>
+      </noscript>
+      <div data-mk="progress" aria-hidden="true" />
       <Navbar
         leading={
           <Link

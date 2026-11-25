@@ -3,31 +3,82 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 
-/** True once the element has entered the viewport; stays true afterwards. */
-export function useInView<T extends Element>(threshold = 0.25): [RefObject<T | null>, boolean] {
+/**
+ * True once the element has entered the viewport; stays true afterwards. `bottomMarginPercent`
+ * shrinks the viewport at the bottom, so an element is revealed a little after it appears, which
+ * reads as deliberate instead of as a flicker at the edge of the screen.
+ *
+ * IntersectionObserver only reports an element while it crosses the viewport. An element the page
+ * jumps clean past (the End key, a dragged scrollbar, a page restored part-way down, a tab that
+ * paints slowly) is never reported, and would stay hidden when scrolled back to. So the scroll
+ * position is checked as well: anything that starts above the line counts as seen. Without
+ * IntersectionObserver the element is simply shown.
+ */
+export function useInView<T extends Element>(
+  threshold = 0.25,
+  bottomMarginPercent = 0,
+): [RefObject<T | null>, boolean] {
   const ref = useRef<T | null>(null);
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     const element = ref.current;
     if (!element || seen) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      // A browser with no way to tell shows the content at once. Deferred, so it is not a state
+      // update made while the effect runs.
+      const timer = setTimeout(() => setSeen(true), 0);
+      return () => clearTimeout(timer);
+    }
+
+    let frame = 0;
+    const stop = () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', schedule);
+      if (frame) cancelAnimationFrame(frame);
+    };
+    const reveal = () => {
+      setSeen(true);
+      stop();
+    };
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting) {
-          setSeen(true);
-          observer.disconnect();
-        }
+        if (entry?.isIntersecting) reveal();
       },
-      { threshold },
+      { threshold, rootMargin: `0px 0px -${bottomMarginPercent}% 0px` },
     );
+    const check = () => {
+      frame = 0;
+      const rect = element.getBoundingClientRect();
+      const line = window.innerHeight * (1 - bottomMarginPercent / 100);
+      if (rect.top < line - threshold * rect.height) reveal();
+    };
+    function schedule() {
+      if (!frame) frame = requestAnimationFrame(check);
+    }
     observer.observe(element);
-    return () => observer.disconnect();
-  }, [seen, threshold]);
+    window.addEventListener('scroll', schedule, { passive: true });
+    return stop;
+  }, [seen, threshold, bottomMarginPercent]);
   return [ref, seen];
 }
 
-/** 0 when the section's top reaches the top of the viewport, 1 when its bottom reaches the bottom. */
-export function useScrollProgress(ref: RefObject<Element | null>): number {
-  const [progress, setProgress] = useState(0);
+/**
+ * A value derived from how far through an element the page has scrolled: 0 when its top reaches
+ * the top of the viewport, 1 when its bottom reaches the bottom. `select` turns that fraction into
+ * what the component actually uses (a step, a boolean), and React re-renders only when that value
+ * changes, not on every scroll frame. With smooth scrolling the frames come at the display rate,
+ * so re-rendering on each one is the difference between smooth and not.
+ */
+export function useScrollProgress<T>(
+  ref: RefObject<Element | null>,
+  select: (progress: number) => T,
+): T {
+  const choose = useRef(select);
+  const [value, setValue] = useState<T>(() => select(0));
+  // Keeps the latest `select` without re-subscribing to the scroll each time it changes.
+  useEffect(() => {
+    choose.current = select;
+  });
   useEffect(() => {
     let frame = 0;
     const update = () => {
@@ -36,7 +87,7 @@ export function useScrollProgress(ref: RefObject<Element | null>): number {
       if (!element) return;
       const rect = element.getBoundingClientRect();
       const range = rect.height - window.innerHeight;
-      setProgress(range > 0 ? Math.min(1, Math.max(0, -rect.top / range)) : 0);
+      setValue(choose.current(range > 0 ? Math.min(1, Math.max(0, -rect.top / range)) : 0));
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -50,7 +101,7 @@ export function useScrollProgress(ref: RefObject<Element | null>): number {
       if (frame) cancelAnimationFrame(frame);
     };
   }, [ref]);
-  return progress;
+  return value;
 }
 
 /** Eases a number toward its target. With reduced motion it jumps straight there. */

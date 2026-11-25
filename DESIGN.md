@@ -64,6 +64,24 @@ Rounded molded bodies, circular keys and dials, square-ish LCD and OLED screens.
 
 Vendored from the SPEC-01 registry into `packages/ui/src/primitives/` and owned by this repo. Avero adapts a few of them (text fields, stepper, wheel select, resizable and command palette accept props and change callbacks). Used today: Navbar, Device, Display, DPad, SlideSwitch, ModeDial, Segmented, ItemList, Lcd, Meter, BarGraph, Card, Tabs, CodeBlock, AlertDialog, CommandPalette, Toasts, Feed, Switch, Stepper, Select, TextField, Textarea, Button. Avero adds `TaskStatusBadge` and the brand marks.
 
+## Motion on the landing page
+
+The landing page moves the way the sites it was modelled on do: slowly into place, on one curve, with the scroll itself carrying weight. The vocabulary is in `apps/web/src/app/(marketing)/marketing.css` and `features/marketing/motion.ts`.
+
+- **One curve.** `--mk-out` (`cubic-bezier(0.22, 1, 0.36, 1)`) for interface motion, `--mk-expo` (`cubic-bezier(0.16, 1, 0.3, 1)`) for the large entrances, `--mk-inout` (`cubic-bezier(0.76, 0, 0.24, 1)`) for travel. Entrances take 0.9 to 1.4 seconds, interface responses 0.45 to 0.6.
+- **Inertial scroll.** Lenis (`SmoothScroll`) eases the wheel toward its target. Touch keeps the phone's own momentum. Links to a section glide there on the in-out curve and then move focus to the section.
+- **Words rise out of masks.** Headings are split by `Words` into words that come up from below the line, one after another. They stay ordinary text for screen readers.
+- **Transform and opacity only,** so everything stays on the compositor. `translate` and `scale` are used as individual properties, so a hover (`transform`) never fights an entrance (`translate`).
+- **Scroll-linked touches are decoration.** The progress bar and the hero device receding use CSS scroll timelines behind `@supports`, with no fallback.
+
+### Named Rules
+
+**The Opt-In Rule.** Content is static by default. Every entrance sits inside `prefers-reduced-motion: no-preference`, so a person who asked for less motion gets the finished page, not a hidden one, and Lenis does not start for them. Without script, the layout's `<noscript>` rule shows every block in place.
+
+**The No-Re-Render Rule.** Scroll position never drives React state frame by frame. A component that depends on the scroll takes a step from `useScrollProgress` and re-renders only when the step changes.
+
+**The Never-Skipped Rule.** A block revealed on scroll is also revealed by position, so jumping past it (End key, dragged scrollbar, restored scroll position) cannot leave it hidden.
+
 ## The console
 
 The console is `apps/web/src/app/(dashboard)`. It is a tool people work in for hours, so it is flat, dense and quiet, and the brand lives in its details. It is deliberately unlike the hardware skin and does not use it.

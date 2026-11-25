@@ -113,7 +113,12 @@ export function ReplayScope({
             <span data-rp="playhead" aria-hidden="true" />
           </div>
 
-          <ol ref={feedRef} data-rp="feed" aria-label="What the agent did so far">
+          <ol
+            ref={feedRef}
+            data-rp="feed"
+            data-lenis-prevent=""
+            aria-label="What the agent did so far"
+          >
             {visible.length === 0 && <li data-kind="idle">Press play, or drag the playhead.</li>}
             {visible.map((row) => (
               <li key={row.id} data-kind={row.kind} data-failed={row.failed ? '' : undefined}>

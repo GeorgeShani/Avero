@@ -1,5 +1,36 @@
 /* Marketing page. Everything is scoped to the hardware skin and keyed on data-mk. */
 
+/* Motion --------------------------------------------------------------------------------------
+ * One vocabulary for everything that moves, taken from what makes the reference sites feel
+ * smooth: a single long ease-out for almost everything (--mk-out for UI, --mk-expo for the big
+ * entrances), a slow ease-in-out for travel (--mk-inout), and nothing animated but transform and
+ * opacity, so it all stays on the compositor. Entrances are static by default and opted into under
+ * prefers-reduced-motion: no-preference, so nothing is ever left hidden.
+ */
+[data-skin='hardware'] {
+  --mk-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --mk-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --mk-inout: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* Lenis (inertial scrolling) needs these; they apply only while it is running. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
 /* The site shell already pads the top for the fixed navbar, so the sheet adds almost nothing. */
 [data-skin='hardware'] [data-mk='page'] {
   min-height: 0;
@@ -59,19 +90,127 @@
   text-transform: none;
 }
 
-/* Reveal -------------------------------------------------------------------------------------- */
+/* Reveal --------------------------------------------------------------------------------------
+ * Three kinds, all set by Reveal and all driven by one attribute, data-seen:
+ *   a block that fades and rises as one;
+ *   a stagger, where the block is still and each item follows the one before;
+ *   a heading group, where the kicker and paragraphs rise and the heading's words come up out of
+ *   their masks (data-mk='w' clips; data-mk='wi' moves).
+ */
 
-[data-skin='hardware'] [data-mk='reveal'] {
-  opacity: 0;
-  transform: translateY(18px);
-  transition:
-    opacity 700ms var(--ease-settle) var(--delay, 0ms),
-    transform 700ms var(--ease-settle) var(--delay, 0ms);
+/* Each word of a heading sits in a mask. The padding gives descenders room inside it and the
+   negative margin gives the room back, so the line height is unchanged. */
+[data-skin='hardware'] [data-mk='w'] {
+  display: inline-block;
+  padding-block: 0.04em 0.16em;
+  margin-block: -0.04em -0.16em;
+  overflow: clip;
+  vertical-align: top;
 }
 
-[data-skin='hardware'] [data-mk='reveal'][data-seen] {
-  opacity: 1;
-  transform: none;
+[data-skin='hardware'] [data-mk='wi'] {
+  display: inline-block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-skin='hardware'] [data-mk='reveal'] {
+    opacity: 0;
+    translate: 0 56px;
+    transition:
+      opacity 900ms var(--mk-out) var(--delay, 0ms),
+      translate 1300ms var(--mk-expo) var(--delay, 0ms);
+  }
+
+  [data-skin='hardware'] [data-mk='reveal'][data-seen] {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* A stagger and a heading group are not themselves moved; what is inside them is. */
+  [data-skin='hardware'] [data-mk='reveal']:is([data-stagger], [data-head], [data-closing]) {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+
+  [data-skin='hardware'] [data-mk='reveal'][data-stagger] li {
+    opacity: 0;
+    translate: 0 44px;
+    transition:
+      opacity 850ms var(--mk-out) calc(var(--delay, 0ms) + var(--i, 0) * 90ms),
+      translate 1250ms var(--mk-expo) calc(var(--delay, 0ms) + var(--i, 0) * 90ms),
+      transform 450ms var(--mk-out),
+      box-shadow 450ms var(--mk-out);
+  }
+
+  [data-skin='hardware'] [data-mk='reveal'][data-stagger][data-seen] li {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  [data-skin='hardware'] [data-mk='reveal'][data-stagger] li:nth-child(1) {
+    --i: 0;
+  }
+  [data-skin='hardware'] [data-mk='reveal'][data-stagger] li:nth-child(2) {
+    --i: 1;
+  }
+  [data-skin='hardware'] [data-mk='reveal'][data-stagger] li:nth-child(3) {
+    --i: 2;
+  }
+  [data-skin='hardware'] [data-mk='reveal'][data-stagger] li:nth-child(4) {
+    --i: 3;
+  }
+  [data-skin='hardware'] [data-mk='reveal'][data-stagger] li:nth-child(5) {
+    --i: 4;
+  }
+  [data-skin='hardware'] [data-mk='reveal'][data-stagger] li:nth-child(6) {
+    --i: 5;
+  }
+  [data-skin='hardware'] [data-mk='reveal'][data-stagger] li:nth-child(n + 7) {
+    --i: 6;
+  }
+
+  /* Cards lift a little under the pointer, on the same curve they arrived on. */
+  [data-skin='hardware'] [data-mk='ship'] li:hover {
+    transform: translateY(-5px);
+    box-shadow:
+      inset 0 0 0 1px var(--key-color),
+      inset 0 1px 0 #fff,
+      0 18px 26px -18px rgb(0 0 0 / 0.4);
+  }
+
+  /* Heading groups and the closing copy: the kicker and paragraphs, then the words. */
+  [data-skin='hardware'] [data-mk='reveal']:is([data-head], [data-closing]) > :not(h2) {
+    opacity: 0;
+    translate: 0 30px;
+    transition:
+      opacity 900ms var(--mk-out) var(--d, 0ms),
+      translate 1250ms var(--mk-expo) var(--d, 0ms);
+  }
+
+  [data-skin='hardware'] [data-mk='reveal']:is([data-head], [data-closing])[data-seen] > :not(h2) {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  [data-skin='hardware'] [data-mk='reveal']:is([data-head], [data-closing]) > [data-mk='lede'] {
+    --d: 420ms;
+  }
+
+  [data-skin='hardware'] [data-mk='reveal']:is([data-head], [data-closing]) > a {
+    --d: 560ms;
+  }
+
+  [data-skin='hardware'] [data-mk='reveal']:is([data-head], [data-closing]) [data-mk='wi'] {
+    translate: 0 125%;
+    transition: translate 1250ms var(--mk-expo) calc(var(--i, 0) * 60ms + 120ms);
+  }
+
+  [data-skin='hardware']
+    [data-mk='reveal']:is([data-head], [data-closing])[data-seen]
+    [data-mk='wi'] {
+    translate: 0 0;
+  }
 }
 
 /* Hero --------------------------------------------------------------------------------------- */
@@ -129,25 +268,65 @@
   text-transform: none;
 }
 
-[data-skin='hardware'] [data-mk='headline'] span {
-  display: inline-block;
-  opacity: 0;
-  filter: blur(8px);
-  transform: translateY(0.4em) rotate(1.5deg);
-  animation: mk-word 800ms var(--ease-settle) forwards;
-  animation-delay: calc(var(--i) * 70ms + 120ms);
+/* The headline's line height is tight, so its masks need more room for descenders. */
+[data-skin='hardware'] [data-mk='headline'] [data-mk='w'] {
+  padding-block: 0.06em 0.2em;
+  margin-block: -0.06em -0.2em;
 }
 
-[data-skin='hardware'] [data-mk='headline'] span:nth-child(5),
-[data-skin='hardware'] [data-mk='headline'] span:nth-child(6) {
+[data-skin='hardware'] [data-mk='headline'] [data-mk='w']:nth-child(5),
+[data-skin='hardware'] [data-mk='headline'] [data-mk='w']:nth-child(6) {
   color: var(--key-ink);
 }
 
-@keyframes mk-word {
-  to {
-    opacity: 1;
-    filter: none;
-    transform: none;
+/* The page's first moments, in order: the line, the headline, what sits beside it, the device. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-skin='hardware'] [data-mk='headline'] [data-mk='wi'] {
+    animation: mk-rise 1400ms var(--mk-expo) backwards;
+    animation-delay: calc(var(--i, 0) * 75ms + 200ms);
+  }
+
+  [data-skin='hardware'] [data-mk='status'] {
+    animation: mk-fade-up 1100ms var(--mk-out) backwards;
+  }
+
+  [data-skin='hardware'] [data-mk='hero-side'] > * {
+    animation: mk-fade-up 1200ms var(--mk-expo) backwards;
+  }
+
+  [data-skin='hardware'] [data-mk='hero-side'] > :nth-child(1) {
+    animation-delay: 640ms;
+  }
+  [data-skin='hardware'] [data-mk='hero-side'] > :nth-child(2) {
+    animation-delay: 760ms;
+  }
+  [data-skin='hardware'] [data-mk='hero-side'] > :nth-child(3) {
+    animation-delay: 880ms;
+  }
+
+  [data-skin='hardware'] [data-mk='hero'] [data-rp='scope'] {
+    animation: mk-scope-in 1600ms var(--mk-expo) 900ms backwards;
+  }
+}
+
+@keyframes mk-rise {
+  from {
+    translate: 0 125%;
+  }
+}
+
+@keyframes mk-fade-up {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+}
+
+@keyframes mk-scope-in {
+  from {
+    opacity: 0;
+    translate: 0 72px;
+    scale: 0.97;
   }
 }
 
@@ -230,8 +409,8 @@
   border-inline-start: 2px solid var(--hair);
   opacity: 0.4;
   transition:
-    opacity 300ms,
-    border-color 300ms;
+    opacity 600ms var(--mk-out),
+    border-color 600ms var(--mk-out);
 }
 
 [data-skin='hardware'] [data-mk='beats'] li[data-on] {
@@ -601,8 +780,8 @@
     inset 0 0 0 1px var(--hair),
     inset 0 1px 0 #fff;
   transition:
-    transform 200ms var(--ease-detent),
-    box-shadow 200ms;
+    transform 450ms var(--mk-out),
+    box-shadow 450ms var(--mk-out);
 }
 
 [data-skin='hardware'] [data-mk='chips'] li:hover {
@@ -817,13 +996,13 @@
     0 30px 60px -36px rgb(0 0 0 / 0.35);
 }
 
-[data-skin='hardware'] [data-mk='closing-copy'] {
+[data-skin='hardware'] [data-closing='copy'] {
   display: grid;
   justify-items: start;
   gap: 14px;
 }
 
-[data-skin='hardware'] [data-mk='closing-copy'] [data-mk='lede'] {
+[data-skin='hardware'] [data-closing='copy'] [data-mk='lede'] {
   margin: 0;
 }
 
@@ -849,8 +1028,8 @@
   color: inherit;
   text-decoration: none;
   transition:
-    transform 200ms var(--ease-detent),
-    box-shadow 200ms;
+    transform 500ms var(--mk-out),
+    box-shadow 500ms var(--mk-out);
 }
 
 [data-skin='hardware'] [data-mk='door']:hover {
@@ -873,11 +1052,11 @@
 [data-skin='hardware'] [data-mk='door'] i {
   color: var(--key-ink);
   font-style: normal;
-  transition: transform 200ms var(--ease-detent);
+  transition: transform 500ms var(--mk-out);
 }
 
 [data-skin='hardware'] [data-mk='door']:hover i {
-  transform: translateX(4px);
+  transform: translateX(6px);
 }
 
 [data-skin='hardware'] [data-mk='footer'] {
@@ -896,19 +1075,6 @@
 /* Reduced motion: show every state, skip every transition -------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  [data-skin='hardware'] [data-mk='headline'] span {
-    animation: none;
-    opacity: 1;
-    filter: none;
-    transform: none;
-  }
-
-  [data-skin='hardware'] [data-mk='reveal'] {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-
   [data-skin='hardware'] [data-mk='lamp'][data-live],
   [data-skin='hardware'] [data-mk='caret'],
   [data-skin='hardware'] [data-mk='stamp'],
@@ -1280,4 +1446,52 @@ html[data-skin-theme='dark']
   li:not([data-shown])
   [data-mk='mark'] {
   background: #a9a9a3;
+}
+
+/* Scroll-linked effects ------------------------------------------------------------------------
+ * Decorative, so they are a progressive enhancement: where the browser cannot link an animation
+ * to the scroll position there is no fallback, and nothing is missing. They run on the compositor
+ * and follow the real scroll position, so they stay in step with the smooth scrolling.
+ */
+[data-mk='progress'] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: view()) and (animation-range: entry)) {
+    @keyframes mk-progress {
+      from {
+        scale: 0 1;
+      }
+    }
+
+    @keyframes mk-scope-exit {
+      to {
+        translate: 0 -48px;
+        scale: 0.965;
+        opacity: 0.4;
+      }
+    }
+
+    [data-mk='progress'] {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 60;
+      display: block;
+      height: 2px;
+      background: var(--key-color);
+      transform-origin: 0 50%;
+      animation: mk-progress linear both;
+      animation-timeline: scroll(root);
+    }
+
+    /* The hero device settles in on arrival and then recedes as the page moves past it. */
+    [data-skin='hardware'] [data-mk='hero'] [data-rp='scope'] {
+      animation:
+        mk-scope-in 1600ms var(--mk-expo) 900ms backwards,
+        mk-scope-exit linear both;
+      animation-timeline: auto, view();
+      animation-range: normal, exit;
+    }
+  }
 }
